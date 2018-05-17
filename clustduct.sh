@@ -18,7 +18,7 @@ function update_host_ethers {
 		echo "$node_genders_mac $node_genders_ip # $0 $(date)" >> $ETHERSFILE
 	test ${node_genders_ip} && \
 		grep $node_genders_ip $HOSTSFILE &> /dev/null || \
-		echo "$1 $node_genders_ip # $0 $(date)" >> $HOSTSFILE
+		echo "$node_genders_ip ${1} # $0 $(date)" >> $HOSTSFILE
 
 }
 
