@@ -24,10 +24,10 @@ function update_host_ethers {
 
 # ETHERSFILE or HOSTSFILE gets update we have to send a SIGHUB to
 # the dnsmasq process to get them read in
-function send_sigup {
+function send_sighup {
 	# function is simple atm, butmay become complicated if 
 	# other userids are used
-	pkill -SIGHUB  dnsmasq
+	pkill --signal SIGHUP  dnsmasq
 }
 
 if [ ! -e $GENDERSFILE ] ; then
@@ -48,7 +48,7 @@ case $1 in
 		if [ $genders_host_bymac ] ; then 
 			test $LOGGING && echo "add: $genders_host_bymac known in genders, but not by dnsmasq" >&2
 			update_host_ethers $genders_host_bymac
-			send_sighub
+			send_sighup
 		else if [ -e $LINEAR_ADD ] ; then
 			# find free host
 			freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
@@ -57,7 +57,7 @@ case $1 in
 				test $LOGGING && echo "add: new mac=${2} to ${freehost}" >&2
 				echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
 				update_host_ethers $freehost
-				send_sighub
+				send_sighup
 			fi
 		fi fi
 	;;
@@ -73,7 +73,7 @@ case $1 in
 					test $LOGGING && echo "old: add mac=${2} to ${freehost}" >&2
 					echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
 					update_host_ethers $freehost
-					send_sighub
+					send_sighup
 				fi
 			fi
 		else
@@ -83,7 +83,7 @@ case $1 in
 				test $LOGGING && echo "old: setting new ip=${3} and mac=${3} for ${genders_host_bymac}" >&2
 				sed -i "/${2}/d" $ETHERSFILE
 				update_host_ethers ${genders_host_bymac}
-				send_sighub
+				send_sighup
 
 			fi
 		fi
