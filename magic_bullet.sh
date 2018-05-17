@@ -30,7 +30,7 @@ function send_sigup {
 	pkill -SIGHUB  dnsmasq
 }
 
-if [ ! -e $GENDERSFILE ] ;
+if [ ! -e $GENDERSFILE ] ; then
 	echo "genders config at $GENDERSFILE does not exist" >&2 
 	exit 0
 fi
@@ -44,10 +44,10 @@ case $1 in
 		done
 	;;
 	add)
-		known_genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
-		if [ $known_genders_host_bymac ] ; then 
-			test $LOGGING && echo "add: $known_genders_host_bymac known in genders, but not by dnsmasq" >&2
-			update_host_ethers $known_genders_host_bymac
+		genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
+		if [ $genders_host_bymac ] ; then 
+			test $LOGGING && echo "add: $genders_host_bymac known in genders, but not by dnsmasq" >&2
+			update_host_ethers $genders_host_bymac
 			send_sighub
 		else if [ -e $LINEAR_ADD ] ; then
 			# find free host
@@ -63,12 +63,11 @@ case $1 in
 	;;
 	old) 
 		# check if we know the mac
-		known_genders_host_mac=$(nodeattr -f $GENDERSFILE -q mac=${2})
-		known_genders_host_ip=$(nodeattr -f $GENDERSFILE -q ip=${3})
+		genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
+		genders_host_byip=$(nodeattr -f $GENDERSFILE -q ip=${3})
                 # mac is unknown to genders
-		if [ -z ${known_genders_host_mac} ] ; then
-			if [ ${known_genders_host_ip} ] ; then
-				# genders knows the up, so we should do the same as in add
+		if [ -z ${genders_host_bymac} ] ; then
+			if [ -z ${genders_host_byip} ] && [ -e $LINEAR_ADD ] ; then
 				freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
 				if [ $freehost ] ; then
 					test $LOGGING && echo "old: add mac=${2} to ${freehost}" >&2
@@ -78,12 +77,12 @@ case $1 in
 				fi
 			fi
 		else
-			if [ "x${known_genders_host_ip}" != "x${known_genders_host_mac}" ] ; then
+			if [ "x${genders_host_byip}" != "x${genders_host_bymac}" ] ; then
 				# ip address has changed in genders database
 				# delete ip in hosts as mac has predecende
-				test $LOGGING && echo "old: setting new ip=${3} and mac=${3} for ${known_genders_host_mac}" >&2
+				test $LOGGING && echo "old: setting new ip=${3} and mac=${3} for ${genders_host_bymac}" >&2
 				sed -i "/${2}/d" $ETHERSFILE
-				update_host_ethers ${known_genders_host_mac}
+				update_host_ethers ${genders_host_bymac}
 				send_sighub
 
 			fi
