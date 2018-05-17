@@ -1,69 +1,96 @@
 #!/bin/bash
 LEASEFILE=/var/lib/misc/dnsmasq.leases
+LINEAR_ADD=/var/lib/misc/dnsmasq.linear_add
 GENDERSFILE=/etc/genders
+ETHERSFILE=/etc/ethers
+HOSTSFILE=/etc/hosts
+LOGGING=0
+
 #DNSMASQCONF=/etc/dnsmasq.conf
 #DNSMASQCONFDIR=/etc/dnsmasq.d
 
+function update_host_ethers {
+	node_genders_mac=$(nodeattr -f $GENDERSFILE -v $1 mac)
+	node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
+	test $LOGGING && echo "updating info for $1 ip=${node_genders_ip=} mac=${node_genders_mac}" >&2
+	test ${node_genders_mac} && test ${node_genders_ip} && \
+		grep $node_genders_mac $ETHERSFILE &> /dev/null || \
+		echo "$node_genders_mac $node_genders_ip # $0 $(date)" >> $ETHERSFILE
+	test ${node_genders_ip} && \
+		grep $node_genders_ip $HOSTSFILE &> /dev/null || \
+		echo "$1 $node_genders_ip # $0 $(date)" >> $HOSTSFILE
+
+}
+
+# ETHERSFILE or HOSTSFILE gets update we have to send a SIGHUB to
+# the dnsmasq process to get them read in
+function send_sigup {
+	# function is simple atm, butmay become complicated if 
+	# other userids are used
+	pkill -SIGHUB  dnsmasq
+}
+
+if [ ! -e $GENDERSFILE ] ;
+	echo "genders config at $GENDERSFILE does not exist" >&2 
+	exit 0
+fi
 #echo "$0 $*" >&2
 # start main program
 case $1 in 
 	init)
-		# add all nodes which have a mac in genders and are not present in the leases file
-		touch $LEASEFILE
 		for node in $(nodeattr -f $GENDERSFILE -n "mac&&ip") ; do 
-			grep $node $LEASEFILE &> /dev/null || echo "$(date +%s) $(nodeattr -v $node mac) $(nodeattr -v $node ip) $node * # init entry" >> $LEASEFILE
+			test $LOGGING && echo "init: creating netries for host ${node}" >&2
+			update_host_ethers $node
 		done
-		cat $LEASEFILE
 	;;
 	add)
-		lease_time=${DNSMASQ_LEASE_LENGTH:-${DNSMASQ_LEASE_EXPIRES:-$(date +%s)}}
-		known_genders_host=$(nodeattr -f $GENDERSFILE -q mac=${2})
-		if [ -z $known_genders_host ] ; then
-                        # set the dynamic ip, which host creates
-			echo "$lease_time ${2} ${3} ${4:-*} ${DNSMASQ_CLIENT_ID:-*} # add entry, dynamic range" | tee >> $LEASEFILE
-		else
-			# set the ip which we extract from the genders database
-			known_genders_ip=$(nodeattr -f $GENDERSFILE -v $known_genders_host ip)
-			echo "${lease_time} ${2} ${known_genders_ip} ${known_genders_host} ${DNSMASQ_CLIENT_ID:-*} # add entry from genders" | tee -a $LEASEFILE
-		fi
+		known_genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
+		if [ $known_genders_host_bymac ] ; then 
+			test $LOGGING && echo "add: $known_genders_host_bymac known in genders, but not by dnsmasq" >&2
+			update_host_ethers $known_genders_host_bymac
+			send_sighub
+		else if [ -e $LINEAR_ADD ] ; then
+			# find free host
+			freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
+			if [ $freehost ] ; then
+				# add the mac to the genders file, then we can do the rest
+				test $LOGGING && echo "add: new mac=${2} to ${freehost}" >&2
+				echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
+				update_host_ethers $freehost
+				send_sighub
+			fi
+		fi fi
 	;;
 	old) 
-		lease_time=${DNSMASQ_LEASE_LENGTH:-${DNSMASQ_LEASE_EXPIRES:-$(date +%s)}}
 		# check if we know the mac
 		known_genders_host_mac=$(nodeattr -f $GENDERSFILE -q mac=${2})
 		known_genders_host_ip=$(nodeattr -f $GENDERSFILE -q ip=${3})
                 # mac is unknown to genders
 		if [ -z ${known_genders_host_mac} ] ; then
-			if [ -z ${known_genders_host_ip} ] ; then
-			# if ip is also unknown, the host it in dynmic range, leave it there
-				echo sed -i "/${2}/d" $LEASEFILE	>&2	
-				sed -i "/${2}/d" $LEASEFILE	
-				echo "${lease_time} ${2} ${3} ${4:-*} ${DNSMASQ_CLIENT_ID:-*} # old entry dynamic range" | tee -a $LEASEFILE 
-
-			else
-			# mac is unknown but we ip is in genders range, forcing dynamic ip would require
-			# complicated parsing of config file so leave it alone for now 
-			# and sent invalid ip
-				echo "${lease_time} ${2} 0.0.0.0 ${4:-*} ${DNSMASQ_CLIENT_ID:-*} # known genders ip, unknown mac"
+			if [ ${known_genders_host_ip} ] ; then
+				# genders knows the up, so we should do the same as in add
+				freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
+				if [ $freehost ] ; then
+					test $LOGGING && echo "old: add mac=${2} to ${freehost}" >&2
+					echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
+					update_host_ethers $freehost
+					send_sighub
+				fi
 			fi
 		else
-			# check if we are in sync with genders database
-			if [ "x${known_genders_host_mac}" == "x${known_genders_host_ip}" ] ; then
-				# delete old entry
-				echo sed -i "/${known_genders_host_mac}/d" $LEASEFILE	>&2	
-				sed -i "/${known_genders_host_mac}/d" $LEASEFILE	
-				echo "${lease_time} ${2} ${3} ${4} ${DNSMASQ_CLIENT_ID:-*} # old entry, renewing" | tee -a $LEASEFILE
-			else
-				# on mismatch we take the ip from the genders database
-				known_genders_ip=$(nodeattr -f $GENDERSFILE -v $known_genders_host_mac ip)
-				echo sed -i "/${known_genders_host_mac}/d" $LEASEFILE	>&2
-				sed -i "/${known_genders_host_mac}/d" $LEASEFILE	
-				echo "${lease_time} ${2} ${known_genders_ip} ${known_genders_host_mac} ${DNSMASQ_CLIENT_ID:-*} # old entry, but new ip from genders" | tee -a $LEASEFILE
+			if [ "x${known_genders_host_ip}" != "x${known_genders_host_mac}" ] ; then
+				# ip address has changed in genders database
+				# delete ip in hosts as mac has predecende
+				test $LOGGING && echo "old: setting new ip=${3} and mac=${3} for ${known_genders_host_mac}" >&2
+				sed -i "/${2}/d" $ETHERSFILE
+				update_host_ethers ${known_genders_host_mac}
+				send_sighub
+
 			fi
 		fi
 	;;
 	tftp)
-		echo "Called with tftp, doing nothing"
+		echo "Called with tftp, doing nothing atm"
 	;;
 	*)
 		echo "Unkown option,  doing nothing"
