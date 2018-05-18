@@ -31,15 +31,17 @@ source $CLUSTDUCTCONF
 fi
 
 function update_host_ethers {
+	return_val=0
 	node_genders_mac=$(nodeattr -f $GENDERSFILE -v $1 mac)
 	node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
 	test $LOGGING && echo "updating info for $1 ip=${node_genders_ip=} mac=${node_genders_mac}" >&2
 	test ${node_genders_mac} && test ${node_genders_ip} && \
-		grep $node_genders_mac $ETHERSFILE &> /dev/null || \
-		echo "$node_genders_mac $node_genders_ip # $0 $(date)" >> $ETHERSFILE
+		grep $node_genders_mac $ETHERSFILE &> /dev/null || (return_val=1;\
+		echo "$node_genders_mac $node_genders_ip # $0 $(date)" >> $ETHERSFILE)
 	test ${node_genders_ip} && \
-		grep $node_genders_ip $HOSTSFILE &> /dev/null || \
-		echo "$node_genders_ip ${1} # $0 $(date)" >> $HOSTSFILE
+		grep $node_genders_ip $HOSTSFILE &> /dev/null || (return_val=1;\
+		echo "$node_genders_ip ${1} # $0 $(date)" >> $HOSTSFILE)
+	return $return_val
 
 }
 
@@ -68,8 +70,7 @@ case $1 in
 		genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
 		if [ $genders_host_bymac ] ; then 
 			test $LOGGING && echo "add: $genders_host_bymac known in genders, but not by dnsmasq" >&2
-			update_host_ethers $genders_host_bymac
-			send_sighup
+			update_host_ethers $genders_host_bymac && send_sighup
 		else if [ -e $LINEAR_ADD ] ; then
 			# find free host
 			freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
@@ -77,8 +78,7 @@ case $1 in
 				# add the mac to the genders file, then we can do the rest
 				test $LOGGING && echo "add: new mac=${2} to ${freehost}" >&2
 				echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
-				update_host_ethers $freehost
-				send_sighup
+				update_host_ethers $freehost && send_sighup
 			fi
 		fi fi
 	;;
@@ -93,8 +93,7 @@ case $1 in
 				if [ $freehost ] ; then
 					test $LOGGING && echo "old: add mac=${2} to ${freehost}" >&2
 					echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
-					update_host_ethers $freehost
-					send_sighup
+					update_host_ethers $freehost && send_sighup
 				fi
 			fi
 		else
@@ -103,8 +102,7 @@ case $1 in
 				# delete ip in hosts as mac has predecende
 				test $LOGGING && echo "old: setting new ip=${3} and mac=${3} for ${genders_host_bymac}" >&2
 				sed -i "/${2}/d" $ETHERSFILE
-				update_host_ethers ${genders_host_bymac}
-				send_sighup
+				update_host_ethers ${genders_host_bymac} && send_sighup
 
 			fi
 		fi
