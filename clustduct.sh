@@ -17,15 +17,18 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
+# defauly values maybe overwritten with the ones in config file
 LEASEFILE=/var/lib/misc/dnsmasq.leases
 LINEAR_ADD=/var/lib/misc/dnsmasq.linear_add
 GENDERSFILE=/etc/genders
 ETHERSFILE=/etc/ethers
 HOSTSFILE=/etc/hosts
 LOGGING=0
+CLUSTDUCTCONF=/etc/clustduct.conf
 
-#DNSMASQCONF=/etc/dnsmasq.conf
-#DNSMASQCONFDIR=/etc/dnsmasq.d
+if [ -e $CLUSTDUCTCONF ] ; then
+source $CLUSTDUCTCONF
+fi
 
 function update_host_ethers {
 	node_genders_mac=$(nodeattr -f $GENDERSFILE -v $1 mac)
