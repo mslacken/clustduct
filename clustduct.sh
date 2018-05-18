@@ -100,8 +100,12 @@ case $1 in
 			if [ "x${genders_host_byip}" != "x${genders_host_bymac}" ] ; then
 				# ip address has changed in genders database
 				# delete ip in hosts as mac has predecende
-				test $LOGGING && echo "old: setting new ip=${3} and mac=${3} for ${genders_host_bymac}" >&2
-				sed -i "/${2}/d" $ETHERSFILE
+				test $LOGGING && echo "old: setting new ip=${3} and mac=${2} for ${genders_host_bymac}" >&2
+				# delete entry only if it was present
+				genders_ip=$(nodeattr -f $GENDERSFILE -v ${genders_host_bymac} ip)
+				# delete only when /etc/ethers does not reperesent genders state
+				grep -i ${2} $ETHERSFILE > /dev/null | grep ${genders_ip} > /dev/null || \
+					sed -i "/${2}/d" $ETHERSFILE
 				update_host_ethers ${genders_host_bymac} && send_sighup
 
 			fi
