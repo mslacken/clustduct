@@ -23,7 +23,6 @@ LINEAR_ADD=/var/lib/misc/dnsmasq.linear_add
 GENDERSFILE=/etc/genders
 ETHERSFILE=/etc/ethers
 HOSTSFILE=/etc/hosts
-VERBOSE=1
 LOGGING=1
 CLUSTDUCTCONF=/etc/clustduct.conf
 
@@ -31,28 +30,42 @@ if [ -e $CLUSTDUCTCONF ] ; then
 source $CLUSTDUCTCONF
 fi
 
-function update_host_ethers {
-	node_genders_mac=$(nodeattr -f $GENDERSFILE -v $1 mac)
-	node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
-	test $VERBOSE && echo "updating info for $1 ip=${node_genders_ip} mac=${node_genders_mac}" >&2
-	test ${node_genders_mac} && test ${node_genders_ip} && \
-		grep $node_genders_mac $ETHERSFILE > /dev/null|| (return_val=1;\
-		echo "$node_genders_mac $node_genders_ip" >> $ETHERSFILE)
-
-	test ${node_genders_ip} && \
-		grep $node_genders_ip $HOSTSFILE &> /dev/null || (return_val=1;\
-		echo "$node_genders_ip ${1}" >> $HOSTSFILE)
-	if [ "$return_val" == "1" ] ; then
-		send_sighup
+function logerr {
+	level=${2:-1}
+	if [ $level -le $LOGGING ] ; then 
+		echo $1 >&2
 	fi
 }
 
+
+function update_host_ethers {
+	node_genders_mac=$(nodeattr -f $GENDERSFILE -v $1 mac)
+	node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
+	need_reread=0
+	logerr "updating info for $1 ip=${node_genders_ip} mac=${node_genders_mac}" >&2
+	test ${node_genders_mac} && test ${node_genders_ip} && \
+		grep $node_genders_mac $ETHERSFILE > /dev/null
+		if [ $? -eq 1 ] ; then
+			need_reread=1
+			echo "$node_genders_mac $node_genders_ip" >> $ETHERSFILE
+		fi
+
+	test ${node_genders_ip} && \
+		grep $node_genders_mac $ETHERSFILE > /dev/null
+		if [ $? -eq 1 ] ; then
+			need_reread=1
+			echo "$node_genders_ip ${1}" >> $HOSTSFILE
+		fi
+	if [ $need_reread -ne 0 ] ; then
+		send_sighup
+	fi
+}
 # ETHERSFILE or HOSTSFILE gets update we have to send a SIGHUB to
 # the dnsmasq process to get them read in
 function send_sighup {
 	# function is simple atm, butmay become complicated if 
 	# other userids are used
-	test $VERBOSE && echo "sending SGIHUP to dnsmasq" >&2
+	logerr "sending SIGHUP to dnsmasq" >&2
 	pkill --signal SIGHUP  dnsmasq
 }
 
@@ -66,21 +79,21 @@ test $LOGGING && echo "called with $*" >&2
 case $1 in 
 	init)
 		for node in $(nodeattr -f $GENDERSFILE -n "mac&&ip") ; do 
-			test $VERBOSE && echo "init: creating entries for host ${node}" >&2
+			logerr "init: creating entries for host ${node}" >&2
 			update_host_ethers $node
 		done
 	;;
 	add)
 		genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
 		if [ $genders_host_bymac ] ; then 
-			test $VERBOSE && echo "add: $genders_host_bymac known in genders, but not by dnsmasq" >&2
+			logerr "add: $genders_host_bymac known in genders, but not by dnsmasq" >&2
 			update_host_ethers $genders_host_bymac
 		else if [ -e $LINEAR_ADD ] ; then
 			# find free host
 			freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
 			if [ $freehost ] ; then
 				# add the mac to the genders file, then we can do the rest
-				test $VERBOSE && echo "add: new mac=${2} to ${freehost}" >&2
+				logerr "add: new mac=${2} to ${freehost}" >&2
 				echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
 				update_host_ethers $freehost
 			fi
@@ -95,7 +108,7 @@ case $1 in
 			if [ -z ${genders_host_byip} ] && [ -e $LINEAR_ADD ] ; then
 				freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
 				if [ $freehost ] ; then
-					test $VERBOSE && echo "old: add mac=${2} to ${freehost}" >&2
+					logerr "old: add mac=${2} to ${freehost}" >&2
 					echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
 					update_host_ethers $freehost
 				fi
@@ -106,7 +119,7 @@ case $1 in
 				# delete ip in hosts as mac has predecende
 				# delete entry only if it was present
 				genders_ip=$(nodeattr -f $GENDERSFILE -v ${genders_host_bymac} ip)
-				test $VERBOSE && echo "old: changing from ip=${3} to ip=${genders_ip} for mac=${2}" >&2
+				logerr "old: changing from ip=${3} to ip=${genders_ip} for mac=${2}" >&2
 				# delete only when /etc/ethers does not reperesent genders state
 				grep -i ${2} $ETHERSFILE | grep ${genders_ip} > /dev/null || \
 					(sed -i "/${2}/d" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
@@ -116,9 +129,9 @@ case $1 in
 		fi
 	;;
 	tftp)
-		test $VERBOSE && echo "Called with tftp, doing nothing atm" >&2
+		logerr "Called with tftp, doing nothing atm" >&2
 	;;
 	*)
-		test $VERBOSE &&  echo "Unkown option, called with  $* ,  doing nothing" >&2
+		logerr "Unkown option, called with  $* ,  doing nothing" >&2
 	;;
 esac
