@@ -23,6 +23,8 @@ LINEAR_ADD=/var/lib/misc/dnsmasq.linear_add
 GENDERSFILE=/etc/genders
 ETHERSFILE=/etc/ethers
 HOSTSFILE=/etc/hosts
+PXEROOTDIR=/srv/tftp/
+PXEDIR=clustduct
 LOGGING=1
 CLUSTDUCTCONF=/etc/clustduct.conf
 
@@ -36,6 +38,7 @@ function logerr {
 		echo $1 >&2
 	fi
 }
+
 
 
 function update_host_ethers {
@@ -90,7 +93,7 @@ case $1 in
 			update_host_ethers $genders_host_bymac
 		else if [ -e $LINEAR_ADD ] ; then
 			# find free host
-			freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
+			freehost=$(nodeattr -f $GENDERSFILE -nX mac ip | head -n1)
 			if [ $freehost ] ; then
 				# add the mac to the genders file, then we can do the rest
 				logerr "add: new mac=${2} to ${freehost}" >&2
@@ -130,6 +133,9 @@ case $1 in
 	;;
 	tftp)
 		logerr "Called with tftp, doing nothing atm" >&2
+	;;
+	pxemenu)
+		logerr "Starting to create pxe boot structure"
 	;;
 	*)
 		logerr "Unkown option, called with  $* ,  doing nothing" >&2
