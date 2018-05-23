@@ -27,6 +27,8 @@ PXEROOTDIR=/srv/tftp/
 PXEDIR=clustduct
 LOGGING=1
 CLUSTDUCTCONF=/etc/clustduct.conf
+DELETEOLDMACFILES=0
+
 
 if [ -e $CLUSTDUCTCONF ] ; then
 source $CLUSTDUCTCONF
@@ -136,6 +138,19 @@ case $1 in
 	;;
 	pxemenu)
 		logerr "Starting to create pxe boot structure"
+		if [ ! -e ${PXEROOTDIR}/${PXEDIR} ] ; then
+			mkdir -p ${PXEROOTDIR}/${PXEDIR}
+		fi
+		# clean up the files (of explicit mac adresses)
+		for file in ${PXEROOTDIR}/${PXEDIR}/* ; do
+			if [ $DELETEOLDMACFILES -ne 0 ] ; then
+				echo $file | grep -E '[0-9,a-z]{2}-[0-9,a-z]{2}-[0-9,a-z]{2}-[0-9,a-z]{2}-[0-9,a-z]{2}-[0-9,a-z]{2}-[0-9,a-z]{2}' > /dev/null && rm $file
+			fi	
+		done
+		incrementcount=0
+		for node in $(nodeattr -f $GENDERSFILE -q ip | wc -l) ; do
+			
+		done
 	;;
 	*)
 		logerr "Unkown option, called with  $* ,  doing nothing" >&2
