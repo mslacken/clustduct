@@ -23,7 +23,7 @@ LINEAR_ADD=/var/lib/misc/dnsmasq.linear_add
 GENDERSFILE=/etc/genders
 ETHERSFILE=/etc/ethers
 HOSTSFILE=/etc/hosts
-PXEROOTDIR=/srv/tftp/
+PXEROOTDIR=/srv/tftpboot/
 PXEDIR=clustduct
 LOGGING=1
 CLUSTDUCTCONF=/etc/clustduct.conf
@@ -148,8 +148,68 @@ case $1 in
 			fi	
 		done
 		incrementcount=0
-		for node in $(nodeattr -f $GENDERSFILE -q ip | wc -l) ; do
+		nodes=$(nodeattr -f $GENDERSFILE -n ip)	
+		nr_nodes=$(nodeattr -f $GENDERSFILE -n ip | wc -l)
+		base=${BASE:-10}
+		exponent=$(echo "scale=0; l($nr_nodes)/l($base)" | bc -l)
+		counter=1
+		level=0
+		i=1
+		rm ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes 
+		for node in ${nodes}; do
+			if [ $counter -eq 1 ] ; then
+				i_inc=$(($i-1))
+				for n in $(seq 1 $exponent) ; do
+					modulo=$(echo "scale=0; ${i_inc}%($base^$n)" | bc -l)
+					if [ $modulo -eq 0 ] ; then
+						cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes  <<EOF
+MENU BEGIN list_${node}
+MENU LABEL Boot $node to ENDNODE
+EOF
+						level=$(($level+1))
+					fi
+				done
 			
+			fi
+			cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes <<EOF
+LABEL $node
+	MENU LABEL Boot as node $node
+	KERNEL menu.c32
+	APPEND ${PXEDIR}/$node
+EOF
+			if [ $counter -eq ${base} ] ; then
+				for n in $(seq 1 $exponent) ; do
+					modulo=$(echo "scale=0; $i%($base^$n)" | bc -l)
+					if [ $modulo -eq 0 ] ; then
+						cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes  <<EOF
+LABEL go_back
+	MENU LABEL Go back...
+	MENU EXIT
+MENU END
+EOF
+						sed -i "s/ENDNODE/$node/" ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes 
+
+						level=$(($level-1))
+					fi
+				done
+			
+			fi
+
+			if [ ${counter} -lt ${base} ] ; then
+				counter=$(($counter+1))
+			else
+				counter=1
+			echo
+			fi
+			i=$(($i+1))
+		done
+		for n in $(seq 1 $level); do
+						cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes  <<EOF
+LABEL go_back
+	MENU LABEL Go back...
+	MENU EXIT
+MENU END
+EOF
 		done
 	;;
 	*)
