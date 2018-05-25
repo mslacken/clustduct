@@ -25,6 +25,7 @@ ETHERSFILE=/etc/ethers
 HOSTSFILE=/etc/hosts
 PXEROOTDIR=/srv/tftpboot/
 PXEDIR=clustduct
+PXETEMPLATE=pxe.tmpl
 LOGGING=1
 CLUSTDUCTCONF=/etc/clustduct.conf
 DELETEOLDMACFILES=0
@@ -70,12 +71,12 @@ function update_host_ethers {
 function send_sighup {
 	# function is simple atm, butmay become complicated if 
 	# other userids are used
-	logerr "sending SIGHUP to dnsmasq" >&2
+	logerr "sending SIGHUP to dnsmasq"
 	pkill --signal SIGHUP  dnsmasq
 }
 
 if [ ! -e $GENDERSFILE ] ; then
-	echo "genders config at $GENDERSFILE does not exist" >&2 
+	logerr "genders config at $GENDERSFILE does not exist"
 	exit 0
 fi
 #echo "$0 $*" >&2
@@ -134,7 +135,7 @@ case $1 in
 		fi
 	;;
 	tftp)
-		logerr "Called with tftp, doing nothing atm" >&2
+		logerr "Called with tftp, doing nothing atm" 
 	;;
 	pxemenu)
 		logerr "Starting to create pxe boot structure"
@@ -171,11 +172,36 @@ EOF
 				done
 			
 			fi
+			# to pxe menu structure
 			cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes <<EOF
 LABEL $node
 	MENU LABEL Boot as node $node
 	KERNEL menu.c32
-	APPEND ${PXEDIR}/$node
+	APPEND ${PXEDIR}/${node}.pxe
+EOF
+			# to the node file
+			cat > ${PXEROOTDIR}/${PXEDIR}/${node}.pxe <<EOF
+DEFAULT menu
+PROMPT 0
+MENUTILE $node
+TIMEOUT 60
+ONTIMEOUT local
+LABEL local
+        MENU LABEL (local)
+        MENU DEFAULT
+        COM32 chain.c32
+        APPEND hd0
+EOF
+			if [ -e ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} ] ; then
+				cat ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} \
+					>> ${PXEROOTDIR}/${PXEDIR}/${node}.pxe
+			fi
+			cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.pxe <<EOF
+
+LABEL go_back
+	MENU LABEL Go back...
+	KERNEL menu.c32
+	APPEND ~
 EOF
 			if [ $counter -eq ${base} ] ; then
 				for n in $(seq 1 $exponent) ; do
@@ -199,18 +225,23 @@ EOF
 				counter=$(($counter+1))
 			else
 				counter=1
-			echo
 			fi
 			i=$(($i+1))
 		done
 		for n in $(seq 1 $level); do
-						cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes  <<EOF
+			cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes  <<EOF
 LABEL go_back
 	MENU LABEL Go back...
 	MENU EXIT
 MENU END
 EOF
 		done
+		cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes  <<EOF
+LABEL go_back
+	MENU LABEL Go back...
+	KERNEL menu.c32
+	APPEND ~
+EOF
 	;;
 	*)
 		logerr "Unkown option, called with  $* ,  doing nothing" >&2
