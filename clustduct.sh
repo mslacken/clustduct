@@ -116,7 +116,7 @@ case $1 in
 				if [ $freehost ] ; then
 					logerr "old: add mac=${2} to ${freehost}" >&2
 					echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
-					update_host_ethers $freehost
+					update_hot_ethers $freehost
 				fi
 			fi
 		else
@@ -135,7 +135,39 @@ case $1 in
 		fi
 	;;
 	tftp)
-		logerr "Called with tftp, doing nothing atm" 
+		logerr "Called with tftp" 
+		# test if called file contains clustduct_pxe
+		echo $3 | grep "clustduct_pxe" > /dev/null
+		if [ $? -eq 0 ] ; then
+			nodename=$(basename $3 | sed 's/\.clustduct_pxe//')
+			genders_ip=$(nodeattr -f $GENDERSFILE -v $nodename ip)
+			genders_mac=$(nodeattr -f $GENDERSFILE -v $nodename mac)
+			real_mac=$(ip neigh show $3)
+			if [ -z $real_mac ] ; then
+				echo "No mac address in ip stack, exiting"
+				exit 1
+			fi
+			if [ -z $genders_ip ] ; 
+				logerr "ip $3 not in genders, exiting"
+				exit 1
+			fi
+			if [ -z $genders_mac ] ; then 
+				logerr "tftp: booted as ${nodename}, but mac $real_mac unknown in genders"
+				echo "$nodename mac=${real_mac} #  added by $0 $(date)" >> $GENDERSFILE 
+				update_host_ethers $nodename
+			else
+				if [ $real_mac != $genders_mac ] ; then
+					loggerr "mac (${real_mac}) is different for node $nodename in genders"
+					loggerr "deleting mac (${genders_mac}) in $GENDERSFILE"
+					sed -i "d/${genders_mac}/" $GENDERSFILE
+					logerr "adding new mac ${genders_mac} will be added"
+					echo "$nodename mac=${real_mac} #  added by $0 $(date)" >> $GENDERSFILE 
+					update_host_ethers $nodename
+				else 
+					logerr "right node ${nodename}, booted with right mac $real_mac"
+				fi
+			fi
+		fi
 	;;
 	pxemenu)
 		logerr "Starting to create pxe boot structure"
@@ -180,7 +212,7 @@ LABEL $node
 	APPEND ${PXEDIR}/${node}.pxe
 EOF
 			# to the node file
-			cat > ${PXEROOTDIR}/${PXEDIR}/${node}.pxe <<EOF
+			cat > ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
 DEFAULT menu
 PROMPT 0
 MENUTILE $node
@@ -194,9 +226,9 @@ LABEL local
 EOF
 			if [ -e ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} ] ; then
 				cat ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} \
-					>> ${PXEROOTDIR}/${PXEDIR}/${node}.pxe
+					>> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe
 			fi
-			cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.pxe <<EOF
+			cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
 
 LABEL go_back
 	MENU LABEL Go back...
