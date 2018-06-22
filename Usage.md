@@ -1,5 +1,6 @@
 #Deployment for HPC product
 Currtently it is not possible to deploy the HPC nodes on bare metal via any tools. This document provides intial thougths and describes the necessary tools and steps.
+
 ##Used software
 
    * **dnsmasq** for dhpc, dns and tftp managment
@@ -16,6 +17,7 @@ In the first step install the required packages on the management node. This can
 ```
 zypper in dnsmasq genders
 ```
+### Genders databases configuration
 Now the cluster nodes have to be defined by creating a genders database for them. For every a new line containing the *ip*-attribute which will be used as ip address for the compute node.
 ```
 test-node1 ip=192.168.100.1
@@ -23,6 +25,8 @@ test-node2 ip=192.168.100.2
 test-node3 ip=192.168.100.3,mac=aa:bb:cc:dd:ee:ff
 ```
 If the mac addresses of the hosts are known they could also be added now, if not they can be set on the pxe boot menu or will be added on the node boot up.
+
+### Dnsmasq configuration
 The dnsmasq configuration file following options have to be changed:
 ```
 interface=eth0
@@ -38,7 +42,7 @@ dhcp-range=192.168.100.50,192.168.100.60,12h
 can be set.
 The local domain can be set via the keyword 
 ```
-local=/cluster/
+local=/cluster.suse/
 ```
 For the image deployment *tftp* has to enabled via
 ```
@@ -52,11 +56,22 @@ dhcp-script=/usr/bin/clustduct.sh
 ###Image creation and pxe config
 Clone the kiwi desriptions with
 ```
-git clone  \url{https://github.com/SUSE/kiwi-descriptions}
+git clone  https://github.com/SUSE/kiwi-descriptions
 ```
-and create an appropriate image with
+and select an appropriate image. For the next steps the suse-leap-15.0-JeOS is selected. In the
+configuration file config.xml change 
 ```
-kiwi-ng --type oem system build --description kiwi-descriptions/suse/x86\_64/suse-leap-42.3-JeOS --target-dir /tmp/myimage\_oem\_pxe
+installiso="true"
+``` 
+to 
+```
+installpxe="true"
+```
+Now the image can be built with
+```
+kiwi-ng --type oem system build \
+--description kiwi-descriptions/suse/x86\_64/suse-leap-42.3-JeOS \
+--target-dir /tmp/myimage_oem_pxe
 ```
 and copy the kernel initrd and image to the approriate dirs
 ```
@@ -84,7 +99,8 @@ LABEL local
 LABEL JeOS
         kernel /image/LimeJeOS-Leap-42.3.kernel
         MENU LABEL liveJeOS42.3
-        append initrd=/boot/initrd rd.kiwi.install.pxe rd.kiwi.install.image=t\url{ftp://192.168.100.253/image/LimeJeOS-Leap-42.3.xz}
+        append initrd=/boot/initrd rd.kiwi.install.pxe \
+        rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-42.3.xz
 ```
 has to be created and the files from the syslinux distribuition copied to the appropriate places:
 ```
