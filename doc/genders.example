@@ -1,0 +1,35 @@
+# Sample genders file which should be the same on all nodes, with following format.
+# Each line of the genders file may have one of the following formats
+# The nodename(s) is the shortened[2] hostname of a node.  This is followed by
+# any number of spaces or tabs, and then the comma-separated list of attributes,
+# each of which can optionally have a value.  The substitution string "%n" can
+# be used in an attribute value to represent the nodename.  Nodenames can be
+# listed on multiple lines, so a node's attributes can be specified on multiple
+# lines. However, no single node may have duplicate attributes. Genders database 
+# accepts ranges of nodenames in the general form: prefix[n-m,l-k,...], 
+# where n < m and l < k, etc., as an alternative to explicit lists of nodenames.
+#
+# Following is a sample genders configuration setup
+#
+## slc[0-1,8-9] ditty=0
+## slc[8-15]    type=es40,es40
+## slc[0-15]    crash,cluster=test,all,elan,eip
+## slc[0-5]     type=up2000,up2000
+## slc[6-7]     type=cs20,cs20
+## slc10        ditty=10
+## slc11        ditty=11
+## slc12        ditty=12
+## slc13        ditty=13
+## slc14        ditty=14
+## slc15        ditty=15
+## slc0         passwdhost
+## slc1         wti=/dev/ttyD23:0
+## slc2         wti=/dev/ttyD23:1,ditty=2
+## slc3         wti=/dev/ttyD23:2,ditty=3
+## slc4         wti=/dev/ttyD23:3,ditty=4
+## slc5         wti=/dev/ttyD23:4,ditty=5
+## slc6         mac0=00:02:56:00:05:F2,ditty=6
+## slc7         ditty=7,mac0=00:02:56:00:03:49
+test-node-01 ip=192.168.100.11
+test-node-02 ip=192.168.100.12
+test-node-03 ip=192.168.100.13

@@ -30,6 +30,8 @@ LOGGING=1
 CLUSTDUCTCONF=/etc/clustduct.conf
 DELETEOLDMACFILES=0
 
+# global variables - use with care
+need_reread=0
 
 if [ -e $CLUSTDUCTCONF ] ; then
 source $CLUSTDUCTCONF
@@ -62,10 +64,19 @@ function update_host_ethers {
 			need_reread=1
 			echo "$node_genders_ip ${1}" >> $HOSTSFILE
 		fi
-	if [ $need_reread -ne 0 ] ; then
-		send_sighup
-	fi
 }
+
+function update_hosts {
+	node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
+	need_reread=0
+	test ${node_genders_ip} && grep $node_genders_ip $HOSTSFILE >> /dev/null
+	if [ $? -eq 1 ] ; then
+		need_reread=1
+		echo "$node_genders_ip ${1}" >> $HOSTSFILE
+	fi
+
+}
+
 # ETHERSFILE or HOSTSFILE gets update we have to send a SIGHUB to
 # the dnsmasq process to get them read in
 function send_sighup {
@@ -84,10 +95,18 @@ fi
 test $LOGGING && echo "called with $*" >&2
 case $1 in 
 	init)
-		for node in $(nodeattr -f $GENDERSFILE -n "mac&&ip") ; do 
+		for node in $(nodeattr -f $GENDERSFILE -n "ip&&mac") ; do 
 			logerr "init: creating entries for host ${node}" >&2
 			update_host_ethers $node
 		done
+		for node in $(nodeattr -f $GENDERSFILE -n "ip") ; do 
+			logerr "init: filling up $HOSTSFILE with $node $node"
+			update_hosts $node
+
+		done
+		if [ $need_reread -ne 0 ] ; then
+			send_sighup
+		fi
 	;;
 	add)
 		genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
@@ -104,6 +123,9 @@ case $1 in
 				update_host_ethers $freehost
 			fi
 		fi fi
+		if [ $need_reread -ne 0 ] ; then
+			send_sighup
+		fi
 	;;
 	old) 
 		# check if we know the mac
@@ -116,7 +138,7 @@ case $1 in
 				if [ $freehost ] ; then
 					logerr "old: add mac=${2} to ${freehost}" >&2
 					echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
-					update_hot_ethers $freehost
+					update_host_ethers $freehost
 				fi
 			fi
 		else
@@ -133,6 +155,9 @@ case $1 in
 
 			fi
 		fi
+		if [ $need_reread -ne 0 ] ; then
+			send_sighup
+		fi
 	;;
 	tftp)
 		logerr "Called with tftp" 
@@ -147,7 +172,7 @@ case $1 in
 				echo "No mac address in ip stack, exiting"
 				exit 1
 			fi
-			if [ -z $genders_ip ] ; 
+			if [ -z $genders_ip ] ; then
 				logerr "ip $3 not in genders, exiting"
 				exit 1
 			fi
@@ -166,6 +191,9 @@ case $1 in
 				else 
 					logerr "right node ${nodename}, booted with right mac $real_mac"
 				fi
+			fi
+			if [ $need_reread -ne 0 ] ; then
+				send_sighup
 			fi
 		fi
 	;;
