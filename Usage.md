@@ -10,6 +10,7 @@ Currtently it is not possible to deploy the HPC nodes on bare metal via any tool
    * **salt** for node configuration
    * **powerman** for management of the physical machines
    * **clustduct** which connects dnsmasq with genders
+   * **syslinux** providing the necessary pxe boot infratsructure
 
 ##Quick start guide
 ###Prerequesteries
@@ -52,6 +53,13 @@ tftp-root=/srv/tftpboot/
 Now dnsmasq has be configured in such a way, that it reads the host informations from the genders database
 ```
 dhcp-script=/usr/bin/clustduct.sh
+```
+For non root functionality of dnsmasq we have to the change the attributes of following files
+```
+chgrp tftp /etc/hosts
+chmod g+w /etc/hosts
+chgrp tftp /etc/ethers
+chmod g+w /etc/ethers
 ```
 ###Image creation and pxe config
 Clone the kiwi desriptions with
