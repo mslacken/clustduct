@@ -18,6 +18,24 @@ In the first step install the required packages on the management node. This can
 ```
 zypper in dnsmasq genders
 ```
+
+### Disable apparmor
+There is preconfigured apparmor interdace for dnsmasq in apparmor which has the be disabled
+which can be done by two ways. You can 
+
+   * disable apparmor service with
+
+```
+systemctl disable apparmor.service
+```
+and reboot the machine, or 
+
+   * disable the profile with
+
+```
+aa-disable /etc/apparmor.d/usr.sbin.dnsmasq
+```
+
 ### Genders databases configuration
 Now the cluster nodes have to be defined by creating a genders database for them. For every a new line containing the *ip*-attribute which will be used as ip address for the compute node.
 ```
@@ -26,6 +44,7 @@ test-node2 ip=192.168.100.2
 test-node3 ip=192.168.100.3,mac=aa:bb:cc:dd:ee:ff
 ```
 If the mac addresses of the hosts are known they could also be added now, if not they can be set on the pxe boot menu or will be added on the node boot up.
+
 
 ### Dnsmasq configuration
 The dnsmasq configuration file following options have to be changed:
@@ -49,6 +68,10 @@ For the image deployment *tftp* has to enabled via
 ```
 enable-tftp
 tftp-root=/srv/tftpboot/
+```
+and set the pxe boot option
+```
+dhcp-boot=pxelinux.0
 ```
 Now dnsmasq has be configured in such a way, that it reads the host informations from the genders database
 ```
@@ -87,6 +110,7 @@ cp LimeJeOS-Leap-42.3.xz /srv/tftpboot/image
 cp LimeJeOS-Leap-42.3.md5 /srv/tftpboot/image
 cp LimeJeOS-Leap-42.3.initrd  /srv/tftpboot/image/
 cp LimeJeOS-Leap-42.3.kernel /srv/tftpboot/image/
+cp pxeboot.initrd.xz /srv/tftpboot/image/
 ```
 Also the file /srv/tftpboot/pxelinux.cfg/default
 with the content
@@ -104,15 +128,25 @@ LABEL local
         COM32 chain.c32
         APPEND hd0
 
+LABEL ClustDuct
+        MENU LABEL Boot as node ...
+        KERNEL menu.c32
+        APPEND clustduct/clustduct-nodes
+
+
 LABEL JeOS
         kernel /image/LimeJeOS-Leap-42.3.kernel
         MENU LABEL liveJeOS42.3
-        append initrd=/boot/initrd rd.kiwi.install.pxe \
-        rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-42.3.xz
+        append initrd=/image/pxeboot.initrd.xz rd.kiwi.install.pxe \
+        rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz
 ```
 has to be created and the files from the syslinux distribuition copied to the appropriate places:
 ```
-cp /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 /srv/tftboot/
+cp /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 /srv/tftpboot/
+```
+and make them available for the tftpuser with
+```
+chgrp -R tftp /srv/tftpboot/*
 ```
 ###Deployment of the nodes
 Simply start dnsmasq with
