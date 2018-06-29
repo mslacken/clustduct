@@ -238,7 +238,7 @@ EOF
 LABEL $node
 	MENU LABEL Boot as node $node
 	KERNEL menu.c32
-	APPEND ${PXEDIR}/${node}.pxe
+	APPEND ${PXEDIR}/${node}.clustduct_pxe
 EOF
 			# to the node file
 			cat > ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
