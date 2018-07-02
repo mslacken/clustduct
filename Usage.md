@@ -137,8 +137,7 @@ LABEL ClustDuct
 LABEL JeOS
         kernel /image/LimeJeOS-Leap-42.3.kernel
         MENU LABEL liveJeOS42.3
-        append initrd=/image/pxeboot.initrd.xz rd.kiwi.install.pxe \
-        rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz
+        append initrd=/image/pxeboot.initrd.xz rd.kiwi.install.pxe rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz
 ```
 has to be created and the files from the syslinux distribuition copied to the appropriate places:
 ```
