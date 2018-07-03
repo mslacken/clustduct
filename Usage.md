@@ -98,6 +98,9 @@ to
 ```
 installpxe="true"
 ```
+
+### Building image with kiwi
+
 Now the image can be built with
 ```
 kiwi-ng --type oem system build \
@@ -112,6 +115,7 @@ cp LimeJeOS-Leap-42.3.initrd  /srv/tftpboot/image/
 cp LimeJeOS-Leap-42.3.kernel /srv/tftpboot/image/
 cp pxeboot.initrd.xz /srv/tftpboot/image/
 ```
+### pxe boot structure
 Also the file /srv/tftpboot/pxelinux.cfg/default
 with the content
 ```
@@ -120,13 +124,8 @@ PROMPT 0
 MENU TITLE Hombrew pxe boot
 TIMEOUT 600
 TOTALTIMEOUT 6000
-ONTIMEOUT JeOS
+ONTIMEOUT ClustDuct
 
-LABEL local
-        MENU LABEL (local)
-        MENU DEFAULT
-        COM32 chain.c32
-        APPEND hd0
 
 LABEL ClustDuct
         MENU LABEL Boot as node ...
@@ -134,11 +133,6 @@ LABEL ClustDuct
         APPEND clustduct/clustduct-nodes
 
 
-LABEL JeOS
-        kernel /image/LimeJeOS-Leap-42.3.kernel
-        MENU LABEL liveJeOS42.3
-        append initrd=/image/pxeboot.initrd.xz rd.kiwi.install.pxe rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz
-```
 has to be created and the files from the syslinux distribuition copied to the appropriate places:
 ```
 cp /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 /srv/tftpboot/
@@ -147,9 +141,24 @@ and make them available for the tftpuser with
 ```
 chgrp -R tftp /srv/tftpboot/*
 ```
+
+Boot entries for the nodes will also be created from the genders database. Entries must have the following form
+```
+JeOS15.0 APPEND=initrd=/image/pxeboot.initrd.xz&nbsp;rd.kiwi.install.pxe&nbsp;rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz,KERNEL=/image/LimeJeOS-Leap-15.0.kernel,clustductorder=1
+local MENU=DEFAULT,APPEND=hd0,COM32=chain.c32,MENU=LABEL&nbsp;(local&nbsp;boot)
+```
+#### NOTE
+The genders database must not have have spaces, thus we use *&nbspc;* instead.
+
+### Create pxe boot structure
+The pxe boot structure can be created with the command
+```
+clustduct pxemenu
+```
 ###Deployment of the nodes
 Simply start dnsmasq with
 ```
 systemctl enable dnsmasq
 systemctl start dnsqmasq
 ```
+
