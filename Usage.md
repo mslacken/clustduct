@@ -24,6 +24,8 @@ Now the cluster nodes have to be defined by creating a genders database for them
 test-node1 ip=192.168.100.1
 test-node2 ip=192.168.100.2
 test-node3 ip=192.168.100.3,mac=aa:bb:cc:dd:ee:ff
+JeOS kernel=/image/LimeJeOS-Leap-42.3.kernel,append=initrd=/boot/initrd&nbsp;rd.kiwi.install.pxe&nbsp;rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-42.3.xz,menu=label&nbsp;liveJeOS42.3
+local menu=label&nbsp;boot&nbsp;from&nbsp;local&nbsp;disk,com32=chain.c32,append=hd0,mandatoryentry
 ```
 If the mac addresses of the hosts are known they could also be added now, if not they can be set on the pxe boot menu or will be added on the node boot up.
 
