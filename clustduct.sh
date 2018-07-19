@@ -79,14 +79,15 @@ function update_hosts {
 
 }
 
-function get_mandatory_entries() {
+function get_boot_entries() {
 	# create a list from all boot entries which have the value mandatoryentry
-	for entry in $(nodeattr -f $GENDERSFILE -n mandatoryentry); do
+	for entry in $(nodeattr -f $GENDERSFILE -n $1); do
 		cat <<EOF
 LABEL $entry
 EOF
 		for label_entry in $(nodeattr -f $GENDERSFILE -l $entry); do
-			echo $label_entry | grep -v mandatoryentry | sed 's/\(=\|\\ws\)/ /g' | \
+			echo $label_entry | grep 'nextboot=' > /dev/null || \
+			echo $label_entry | grep -v $1 | sed 's/\(=\|\\ws\)/ /g' | \
 			sed 's/\(\\eq\)/=/g' | sed 's/^/\t/'
 		done
 	done
@@ -268,7 +269,7 @@ EOF
 			fi
 			cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
 
-$(get_mandatory_entries)
+$(get_boot_entries mandatoryentry)
 LABEL go_back
 	MENU LABEL Go back...
 	KERNEL menu.c32
