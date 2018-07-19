@@ -79,6 +79,19 @@ function update_hosts {
 
 }
 
+function get_mandatory_entries() {
+	# create a list from all boot entries which have the value mandatoryentry
+	for entry in $(nodeattr -f $GENDERSFILE -n mandatoryentry); do
+		cat <<EOF
+LABEL $entry
+EOF
+		for label_entry in $(nodeattr -f $GENDERSFILE -l $entry); do
+			echo $label_entry | grep -v mandatoryentry | sed 's/\(=\|&nbsp;\)/ /g' | \
+			sed 's/^/\t/'
+		done
+	done
+}
+
 # ETHERSFILE or HOSTSFILE gets update we have to send a SIGHUB to
 # the dnsmasq process to get them read in
 function send_sighup {
@@ -219,6 +232,7 @@ case $1 in
 		counter=1
 		level=0
 		i=1
+		# clean up preexisting entries
 		rm ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes 
 		for node in ${nodes}; do
 			if [ $counter -eq 1 ] ; then
@@ -247,13 +261,6 @@ EOF
 DEFAULT menu
 PROMPT 0
 MENUTILE $node
-TIMEOUT 60
-ONTIMEOUT local
-LABEL local
-        MENU LABEL (local)
-        MENU DEFAULT
-        COM32 chain.c32
-        APPEND hd0
 EOF
 			if [ -e ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} ] ; then
 				cat ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} \
@@ -261,6 +268,7 @@ EOF
 			fi
 			cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
 
+$(get_mandatory_entries)
 LABEL go_back
 	MENU LABEL Go back...
 	KERNEL menu.c32
