@@ -86,8 +86,8 @@ function get_mandatory_entries() {
 LABEL $entry
 EOF
 		for label_entry in $(nodeattr -f $GENDERSFILE -l $entry); do
-			echo $label_entry | grep -v mandatoryentry | sed 's/\(=\|&nbsp;\)/ /g' | \
-			sed 's/^/\t/'
+			echo $label_entry | grep -v mandatoryentry | sed 's/\(=\|\\ws\)/ /g' | \
+			sed 's/\(\\eq\)/=/g' | sed 's/^/\t/'
 		done
 	done
 }

@@ -42,7 +42,7 @@ Now the cluster nodes have to be defined by creating a genders database for them
 test-node1 ip=192.168.100.1
 test-node2 ip=192.168.100.2
 test-node3 ip=192.168.100.3,mac=aa:bb:cc:dd:ee:ff
-local menu=label&nbsp;boot&nbsp;from&nbsp;local&nbsp;disk,com32=chain.c32,append=hd0,mandatoryentry
+local menu=label\wsboot\wsfrom\wslocal\wsdisk,com32=chain.c32,append=hd0,mandatoryentry
 ```
 If the mac addresses of the hosts are known they could also be added now, if not they can be set on the pxe boot menu or will be added on the node boot up.
 
@@ -147,12 +147,12 @@ chgrp -R tftp /srv/tftpboot/*
 Boot entries for the nodes will also be created from the genders database. Entries must have the following form
 
 ```
-JeOS15.0 APPEND=initrd=/image/pxeboot.initrd.xz&nbsp;rd.kiwi.install.pxe&nbsp;rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz,KERNEL=/image/LimeJeOS-Leap-15.0.kernel,clustductorder=1
-local MENU=DEFAULT,APPEND=hd0,COM32=chain.c32,MENU=LABEL&nbsp;(local&nbsp;boot)
+JeOS15.0 APPEND=initrd\eq/image/pxeboot.initrd.xz\wsrd.kiwi.install.pxe\wsrd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz,KERNEL=/image/LimeJeOS-Leap-15.0.kernel,clustductorder=1
+local MENU=DEFAULT,APPEND=hd0,COM32=chain.c32,MENU=LABEL\ws(local\wsboot)
 ```
 
 #### NOTE
-The genders database must not have have spaces, thus we use *&nbspc;* instead.
+The genders database must not have have spaces, thus we use *\ws* instead. Also the equal character *=* is interpreted, so we use *\ws* instead.
 
 ### Create pxe boot structure
 The pxe boot structure can be created with the command
