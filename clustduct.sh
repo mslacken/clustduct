@@ -79,8 +79,8 @@ function update_hosts {
 
 }
 
+# create a list from all boot entries which have the value provided by functioncall
 function get_boot_entries() {
-	# create a list from all boot entries which have the value mandatoryentry
 	for entry in $(nodeattr -f $GENDERSFILE -n $1); do
 		cat <<EOF
 LABEL $entry
@@ -91,6 +91,40 @@ EOF
 			sed 's/\(\\eq\)/=/g' | sed 's/^/\t/'
 		done
 	done
+}
+function get_node_boot() {
+	bootimage=$(nodeattr -f $GENDERSFILE -v $1 bootimage)
+	if [ ! -z $bootimage ] ; then
+	echo "LABEL $boot_image"
+	for label_entry in $(nodeattr -f $GENDERSFILE -l $bootimage); do
+		echo $label_entry | grep 'nextboot=' > /dev/null || \
+		echo $label_entry | grep -v $1 | sed 's/\(=\|\\ws\)/ /g' | \
+		sed 's/\(\\eq\)/=/g' | sed 's/^/\t/'
+	done
+	echo "	DEFAULT"
+	fi
+}
+# creates the individual node entry 
+function create_node_entry() {
+	node=$1
+	cat > ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
+DEFAULT menu
+PROMPT 0
+MENUTILE $node
+EOF
+	# not used right now, but keep oppurtunities open
+	if [ -e ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} ] ; then
+		cat ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} \
+			>> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe
+	fi
+	cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
+$(get_node_boot $node)
+$(get_boot_entries mandatoryentry)
+LABEL go_back
+	MENU LABEL Go back...
+	KERNEL menu.c32
+	APPEND ~
+EOF
 }
 
 # ETHERSFILE or HOSTSFILE gets update we have to send a SIGHUB to
@@ -181,6 +215,13 @@ case $1 in
 		echo $4 | grep "clustduct_pxe" > /dev/null
 		if [ $? -eq 0 ] ; then
 			nodename=$(basename $4 | sed 's/\.clustduct_pxe//')
+			# handle image and installation part
+			bootimage=$(nodeattr -f $GENDERSFILE -v $nodename bootimage)
+			if [ ! -z $bootimage ] ; then
+				# just do something if we have a bootimage
+				
+			fi
+			# handle ip and mac address part
 			genders_ip=$(nodeattr -f $GENDERSFILE -v $nodename ip)
 			genders_mac=$(nodeattr -f $GENDERSFILE -v $nodename mac)
 			real_mac=$(ip neigh show $3| cut -f 5 -d ' ')
@@ -258,23 +299,7 @@ LABEL $node
 	APPEND ${PXEDIR}/${node}.clustduct_pxe
 EOF
 			# to the node file
-			cat > ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
-DEFAULT menu
-PROMPT 0
-MENUTILE $node
-EOF
-			if [ -e ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} ] ; then
-				cat ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} \
-					>> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe
-			fi
-			cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
-
-$(get_boot_entries mandatoryentry)
-LABEL go_back
-	MENU LABEL Go back...
-	KERNEL menu.c32
-	APPEND ~
-EOF
+			create_node_entry $node
 			if [ $counter -eq ${base} ] ; then
 				for n in $(seq 1 $exponent) ; do
 					modulo=$(echo "scale=0; $i%($base^$n)" | bc -l)
