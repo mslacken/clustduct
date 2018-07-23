@@ -30,6 +30,7 @@ LOGGING=1
 CLUSTDUCTCONF=/etc/clustduct.conf
 DELETEOLDMACFILES=0
 DOMAIN=cluster.suse
+NETNR=01
 
 # global variables - use with care
 need_reread=0
@@ -95,19 +96,26 @@ EOF
 function get_node_boot() {
 	bootimage=$(nodeattr -f $GENDERSFILE -v $1 bootimage)
 	if [ ! -z $bootimage ] ; then
-	echo "LABEL $boot_image"
-	for label_entry in $(nodeattr -f $GENDERSFILE -l $bootimage); do
-		echo $label_entry | grep 'nextboot=' > /dev/null || \
-		echo $label_entry | grep -v $1 | sed 's/\(=\|\\ws\)/ /g' | \
-		sed 's/\(\\eq\)/=/g' | sed 's/^/\t/'
-	done
+		echo "LABEL $bootimage"
+		for label_entry in $(nodeattr -f $GENDERSFILE -l $bootimage); do
+			echo $label_entry | grep 'nextboot=' > /dev/null || \
+			echo $label_entry | grep -v $1 | sed 's/\(=\|\\ws\)/ /g' | \
+			sed 's/\(\\eq\)/=/g' | sed 's/^/\t/'
+		done
 	echo "	DEFAULT"
 	fi
 }
 # creates the individual node entry 
 function create_node_entry() {
+	if [ $# -ne 2 ] ; then
+		echo "function must be called like:"
+		echo "create_node_entry NODE ENTRYFILE"
+		echo "but was called: create_node_entry $*"
+		exit 1
+	fi
 	node=$1
-	cat > ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
+	nodefile=$2
+	cat > ${PXEROOTDIR}/${nodefile} <<EOF
 DEFAULT menu
 PROMPT 0
 MENUTILE $node
@@ -115,15 +123,15 @@ EOF
 	# not used right now, but keep oppurtunities open
 	if [ -e ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} ] ; then
 		cat ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} \
-			>> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe
+			>> ${PXEROOTDIR}/${nodefile}
 	fi
-	cat >> ${PXEROOTDIR}/${PXEDIR}/${node}.clustduct_pxe <<EOF
+	cat >> ${PXEROOTDIR}/${nodefile} <<EOF
 $(get_node_boot $node)
 $(get_boot_entries mandatoryentry)
 LABEL go_back
-	MENU LABEL Go back...
+	MENU LABEL Go to default
 	KERNEL menu.c32
-	APPEND ~
+	APPEND pxelinux.cfg/default
 EOF
 }
 
@@ -210,7 +218,7 @@ case $1 in
 		fi
 	;;
 	tftp)
-		logerr "Called with tftp" 
+		logerr "Called with tftp, options were $*" 
 		# test if called file contains clustduct_pxe
 		echo $4 | grep "clustduct_pxe" > /dev/null
 		if [ $? -eq 0 ] ; then
@@ -219,7 +227,7 @@ case $1 in
 			bootimage=$(nodeattr -f $GENDERSFILE -v $nodename bootimage)
 			if [ ! -z $bootimage ] ; then
 				# just do something if we have a bootimage
-				
+				echo "booted with image $*"	
 			fi
 			# handle ip and mac address part
 			genders_ip=$(nodeattr -f $GENDERSFILE -v $nodename ip)
@@ -299,7 +307,13 @@ LABEL $node
 	APPEND ${PXEDIR}/${node}.clustduct_pxe
 EOF
 			# to the node file
-			create_node_entry $node
+			create_node_entry $node ${PXEDIR}/${node}.clustduct_pxe  
+			genders_mac=$(nodeattr -f $GENDERSFILE -v $node mac)
+			if [ ! -z ${genders_mac} ] ; then
+				trans_mac=${genders_mac,,}
+				trans_mac=$(echo $trans_mac | tr ':' '-')
+				create_node_entry $node pxelinux.cfg/${NETNR}-${trans_mac}
+			fi
 			if [ $counter -eq ${base} ] ; then
 				for n in $(seq 1 $exponent) ; do
 					modulo=$(echo "scale=0; $i%($base^$n)" | bc -l)
