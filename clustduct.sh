@@ -187,7 +187,13 @@ case $1 in
 	;;
 	old) 
 		# check if we know the mac
-		genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
+		genders_host_bymac=$(nodeattr -f $GENDERSFILE -qn mac=${2})
+		# wc -l does not work with substitutions, so no echo $var below
+		if [ $( nodeattr -f $GENDERSFILE -qn mac=${2} | wc -l) -gt 1 ] ; then
+			echo "genders database corrupted, more than one entry for mac=${2}"
+			echo "entries are ${genders_host_bymac}"
+			exit 1
+		fi
 		genders_host_byip=$(nodeattr -f $GENDERSFILE -q ip=${3})
                 # mac is unknown to genders
 		if [ -z ${genders_host_bymac} ] ; then
@@ -244,13 +250,13 @@ case $1 in
 			fi
 			if [ -z $genders_mac ] ; then 
 				logerr "tftp: booted as ${nodename}, but mac $real_mac unknown in genders"
-				echo "$nodename mac=${real_mac} #  added by $0 $(date)" >> $GENDERSFILE 
+				echo "$nodename mac=${real_mac}" >> $GENDERSFILE 
 				update_host_ethers $nodename
 			else
 				if [ $real_mac != $genders_mac ] ; then
 					loggerr "mac (${real_mac}) is different for node $nodename in genders"
 					loggerr "deleting mac (${genders_mac}) in $GENDERSFILE"
-					sed -i "d/${genders_mac}/" $GENDERSFILE
+					sed -i "s/mac=${genders_mac}//" $GENDERSFILE
 					logerr "adding new mac ${genders_mac} will be added"
 					echo "$nodename mac=${real_mac} #  added by $0 $(date)" >> $GENDERSFILE 
 					update_host_ethers $nodename
