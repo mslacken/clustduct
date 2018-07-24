@@ -220,8 +220,8 @@ case $1 in
 				genders_ip=$(nodeattr -f $GENDERSFILE -v ${genders_host_bymac} ip)
 				logerr "old: changing from ip=${3} to ip=${genders_ip} for mac=${2}"
 				# delete only when /etc/ethers does not represent genders state
-				grep -i ${2} $ETHERSFILE | grep ${genders_ip} > /dev/null || \
-					(sed -i "/${2}/d" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
+				#grep -i ${2} $ETHERSFILE | grep ${genders_ip} > /dev/null || \
+					(sed -i "/mac=${2}/d" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
 				update_host_ethers ${genders_host_bymac}
 
 			fi
@@ -257,13 +257,19 @@ case $1 in
 			fi
 			if [ -z $genders_mac ] ; then 
 				logerr "tftp: booted as ${nodename}, but mac $real_mac unknown in genders"
+				other_node_mac=$(nodeattr -f $GENDERSFILE -q mac=${real_mac})
+				if [ ! -z $other_node_mac ] ; then
+					echo "genders database contains mac=$real_mac as node $other_node_mac, deleting entry"
+					sed -i "/mac=${real_mac}/d" $GENDERSFILE
+				
+				fi
 				echo "$nodename mac=${real_mac}" >> $GENDERSFILE 
 				update_host_ethers $nodename
 			else
 				if [ $real_mac != $genders_mac ] ; then
 					loggerr "mac (${real_mac}) is different for node $nodename in genders"
 					loggerr "deleting mac (${genders_mac}) in $GENDERSFILE"
-					sed -i "s/mac=${genders_mac}//" $GENDERSFILE
+					sed -i "/mac=${genders_mac}/d" $GENDERSFILE
 					logerr "adding new mac ${genders_mac} will be added"
 					echo "$nodename mac=${real_mac}" >> $GENDERSFILE 
 					update_host_ethers $nodename
