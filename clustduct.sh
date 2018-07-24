@@ -165,6 +165,8 @@ case $1 in
 		if [ $need_reread -ne 0 ] ; then
 			send_sighup
 		fi
+		# remove blank lines from ETHERSFILE
+		sed -i '/^\s$/d' $ETHERSFILE
 	;;
 	add)
 		genders_host_bymac=$(nodeattr -f $GENDERSFILE -q mac=${2})
@@ -177,7 +179,7 @@ case $1 in
 			if [ $freehost ] ; then
 				# add the mac to the genders file, then we can do the rest
 				logerr "add: new mac=${2} to ${freehost}"
-				echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
+				echo "${freehost} mac=${2}" >> $GENDERSFILE 
 				update_host_ethers $freehost
 			fi
 		fi fi
@@ -194,14 +196,19 @@ case $1 in
 			echo "entries are ${genders_host_bymac}"
 			exit 1
 		fi
-		genders_host_byip=$(nodeattr -f $GENDERSFILE -q ip=${3})
+		genders_host_byip=$(nodeattr -f $GENDERSFILE -qn ip=${3})
+		if [ $( nodeattr -f $GENDERSFILE -qn ip=${3} | wc -l) -gt 1 ] ; then
+			echo "genders database corrupted, more than one entry for ip=${3}"
+			echo "entries are ${genders_host_byip}"
+			exit 1
+		fi
                 # mac is unknown to genders
 		if [ -z ${genders_host_bymac} ] ; then
 			if [ -z ${genders_host_byip} ] && [ -e $LINEAR_ADD ] ; then
 				freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
 				if [ $freehost ] ; then
 					logerr "old: add mac=${2} to ${freehost}"
-					echo "${freehost} mac=${2} # added by $0 $(date)" >> $GENDERSFILE 
+					echo "${freehost} mac=${2}" >> $GENDERSFILE 
 					update_host_ethers $freehost
 				fi
 			fi
@@ -212,7 +219,7 @@ case $1 in
 				# delete entry only if it was present
 				genders_ip=$(nodeattr -f $GENDERSFILE -v ${genders_host_bymac} ip)
 				logerr "old: changing from ip=${3} to ip=${genders_ip} for mac=${2}"
-				# delete only when /etc/ethers does not reperesent genders state
+				# delete only when /etc/ethers does not represent genders state
 				grep -i ${2} $ETHERSFILE | grep ${genders_ip} > /dev/null || \
 					(sed -i "/${2}/d" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
 				update_host_ethers ${genders_host_bymac}
@@ -258,7 +265,7 @@ case $1 in
 					loggerr "deleting mac (${genders_mac}) in $GENDERSFILE"
 					sed -i "s/mac=${genders_mac}//" $GENDERSFILE
 					logerr "adding new mac ${genders_mac} will be added"
-					echo "$nodename mac=${real_mac} #  added by $0 $(date)" >> $GENDERSFILE 
+					echo "$nodename mac=${real_mac}" >> $GENDERSFILE 
 					update_host_ethers $nodename
 				else 
 					logerr "right node ${nodename}, booted with right mac $real_mac"
