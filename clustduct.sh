@@ -221,7 +221,7 @@ case $1 in
 				logerr "old: changing from ip=${3} to ip=${genders_ip} for mac=${2}"
 				# delete only when /etc/ethers does not represent genders state
 				#grep -i ${2} $ETHERSFILE | grep ${genders_ip} > /dev/null || \
-					(sed -i "/mac=${2}/d" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
+					(sed -i "s/,*mac=${2}//" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
 				update_host_ethers ${genders_host_bymac}
 
 			fi
@@ -260,7 +260,7 @@ case $1 in
 				other_node_mac=$(nodeattr -f $GENDERSFILE -q mac=${real_mac})
 				if [ ! -z $other_node_mac ] ; then
 					echo "genders database contains mac=$real_mac as node $other_node_mac, deleting entry"
-					sed -i "/mac=${real_mac}/d" $GENDERSFILE
+					sed -i "s/,*mac=${real_mac}//" $GENDERSFILE
 				
 				fi
 				echo "$nodename mac=${real_mac}" >> $GENDERSFILE 
@@ -269,7 +269,7 @@ case $1 in
 				if [ $real_mac != $genders_mac ] ; then
 					loggerr "mac (${real_mac}) is different for node $nodename in genders"
 					loggerr "deleting mac (${genders_mac}) in $GENDERSFILE"
-					sed -i "/mac=${genders_mac}/d" $GENDERSFILE
+					sed -i "s/,*mac=${genders_mac}//" $GENDERSFILE
 					logerr "adding new mac ${genders_mac} will be added"
 					echo "$nodename mac=${real_mac}" >> $GENDERSFILE 
 					update_host_ethers $nodename
@@ -279,6 +279,35 @@ case $1 in
 			fi
 			if [ $need_reread -ne 0 ] ; then
 				send_sighup
+			fi
+		fi # end for grep clustduct_pxe
+		# check for the sent/selected image so that we honor the nextboot entry
+		genders_host_byip=$(nodeattr -f $GENDERSFILE -qn ip=${3})
+		if [ -n $genders_host_byip ] ; then
+			bootimage=$(nodeattr -f $GENDERSFILE -v $genders_host_byip  bootimage)
+			# we have a bootimage
+			if [ -n $bootimage ] ; then
+				# get from the append entry the labled rd.kiwi.install.image value
+				append=$(nodeattr -f $GENDERSFILE -v $bootimage append)
+				if [ -n $append ] ; then
+					os_image=$(echo $append |  sed 's/.*rd.kiwi.install.pxewsrd.kiwi.install.image\\eq\([^,]*\),.*/\1/' | cut -f 6,7  -d '/')	
+					echo "got following os_image $os_image compared to ${PXEROOTDIR}$4"
+					if [ "x$os_image" == "x${PXEROOTDIR}$4" ] ; then
+						# check if the bootimage requires an action, what means it has the entry nextboot
+						nextboot=$(nodeattr -f $GENDERSFILE -v $bootimage nextboot)
+						if [ -n $nextboot ] ; then
+							# subsitute bootimaget entry 
+							logerr "changed boot entry for node=$genders_host_byip from $bootimage to $nextboot"
+							sed -i "s/\(^${genders_host_byip}.*bootimage=\)$bootimage/\1$nextboot/" $GENDERSFILE
+							genders_mac=$(nodeattr -f $GENDERSFILE -v ${genders_host_byip} mac)
+							if [ -n ${genders_mac} ] ; then
+								trans_mac=${genders_mac,,}
+								trans_mac=$(echo $trans_mac | tr ':' '-')
+								create_node_entry $genders_host_byip pxelinux.cfg/${NETNR}-${trans_mac}
+							fi
+						fi
+					fi
+				fi
 			fi
 		fi
 	;;
