@@ -137,7 +137,7 @@ LABEL ClustDuct
 ```
 has to be created and the files from the syslinux distribuition copied to the appropriate places:
 ```
-cp /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 /srv/tftpboot/
+cp /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 /usr/share/syslinux/reboot.c32 /srv/tftpboot/
 ```
 and make them available for the tftpuser with
 ```

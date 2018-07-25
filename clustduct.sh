@@ -67,6 +67,11 @@ function update_host_ethers {
 			need_reread=1
 			echo "$node_genders_ip ${1}.${DOMAIN} ${1}" >> $HOSTSFILE
 		fi
+	if [ -n ${node_genders_mac} ] ; then
+		trans_mac=${node_genders_mac,,}
+		trans_mac=$(echo $trans_mac | tr ':' '-')
+		create_node_entry ${1} pxelinux.cfg/${NETNR}-${trans_mac}
+	fi
 }
 
 function update_hosts {
@@ -83,9 +88,7 @@ function update_hosts {
 # create a list from all boot entries which have the value provided by functioncall
 function get_boot_entries() {
 	for entry in $(nodeattr -f $GENDERSFILE -n $1); do
-		cat <<EOF
-LABEL $entry
-EOF
+		echo "LABEL $entry"
 		for label_entry in $(nodeattr -f $GENDERSFILE -l $entry); do
 			echo $label_entry | grep 'nextboot=' > /dev/null || \
 			echo $label_entry | grep -v $1 | sed 's/\(=\|\\ws\)/ /g' | \
@@ -95,14 +98,14 @@ EOF
 }
 function get_node_boot() {
 	bootimage=$(nodeattr -f $GENDERSFILE -v $1 bootimage)
-	if [ ! -z $bootimage ] ; then
+	if [ -n $bootimage ] ; then
 		echo "LABEL $bootimage"
 		for label_entry in $(nodeattr -f $GENDERSFILE -l $bootimage); do
 			echo $label_entry | grep 'nextboot=' > /dev/null || \
-			echo $label_entry | grep -v $1 | sed 's/\(=\|\\ws\)/ /g' | \
+			echo $label_entry | grep -v mandatoryentry | sed 's/\(=\|\\ws\)/ /g' | \
 			sed 's/\(\\eq\)/=/g' | sed 's/^/\t/'
 		done
-	echo "	DEFAULT"
+		echo "	DEFAULT"
 	fi
 }
 # creates the individual node entry 
@@ -116,9 +119,10 @@ function create_node_entry() {
 	node=$1
 	nodefile=$2
 	cat > ${PXEROOTDIR}/${nodefile} <<EOF
-DEFAULT menu
 PROMPT 0
-MENUTILE $node
+MENU TITLE $node
+DEFAULT menu
+TIMEOUT 100
 EOF
 	# not used right now, but keep oppurtunities open
 	if [ -e ${PXEROOTDIR}/${PXEDIR}/${PXETEMPLATE} ] ; then
@@ -127,7 +131,10 @@ EOF
 	fi
 	cat >> ${PXEROOTDIR}/${nodefile} <<EOF
 $(get_node_boot $node)
+MENU SEPERATOR
 $(get_boot_entries mandatoryentry)
+LABEL Save to database and reboot
+	COM32 reboot.c32
 LABEL go_back
 	MENU LABEL Go to default
 	KERNEL menu.c32
@@ -220,8 +227,8 @@ case $1 in
 				genders_ip=$(nodeattr -f $GENDERSFILE -v ${genders_host_bymac} ip)
 				logerr "old: changing from ip=${3} to ip=${genders_ip} for mac=${2}"
 				# delete only when /etc/ethers does not represent genders state
-				#grep -i ${2} $ETHERSFILE | grep ${genders_ip} > /dev/null || \
-					(sed -i "s/,*mac=${2}//" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
+				grep -i ${2} $ETHERSFILE | grep ${genders_ip} > /dev/null || \
+					(sed -i "/${2}/d" $ETHERSFILE; echo deleted entry for ${2} in $ETHERSFILE)
 				update_host_ethers ${genders_host_bymac}
 
 			fi
@@ -291,8 +298,8 @@ case $1 in
 				append=$(nodeattr -f $GENDERSFILE -v $bootimage append)
 				if [ -n $append ] ; then
 					os_image=$(echo $append |  sed 's/.*rd.kiwi.install.pxewsrd.kiwi.install.image\\eq\([^,]*\),.*/\1/' | cut -f 6,7  -d '/')	
-					echo "got following os_image $os_image compared to ${PXEROOTDIR}$4"
-					if [ "x$os_image" == "x${PXEROOTDIR}$4" ] ; then
+					echo "got following os_image ${PXEROOTDIR}$os_image compared to $4"
+					if [ "x${PXEROOTDIR}$os_image" == "x$4" ] ; then
 						# check if the bootimage requires an action, what means it has the entry nextboot
 						nextboot=$(nodeattr -f $GENDERSFILE -v $bootimage nextboot)
 						if [ -n $nextboot ] ; then
@@ -401,6 +408,15 @@ LABEL go_back
 	KERNEL menu.c32
 	APPEND ~
 EOF
+	;;
+	clean)
+		tmpfile=$(mktemp)
+		cp $GENDERSFILE  ${GENDERSFILE}.save
+		nodeattr -f ${GENDERSFILE} --expand > $tmpfile
+		if [ -e $tmpfile ] ; then
+			mv $tmpfile $GENDERSFILE
+		fi
+
 	;;
 	*)
 		logerr "Unkown option, called with  $* ,  doing nothing"
