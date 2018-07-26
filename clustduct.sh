@@ -41,7 +41,7 @@ source $CLUSTDUCTCONF
 fi
 
 function logerr {
-	level=${2:-1}
+	declare level=${2:-1}
 	if [ $level -le $LOGGING ] ; then 
 		echo $1 >&2
 	fi
@@ -50,8 +50,8 @@ function logerr {
 
 
 function update_host_ethers {
-	node_genders_mac=$(nodeattr -f $GENDERSFILE -v $1 mac)
-	node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
+	declare node_genders_mac=$(nodeattr -f $GENDERSFILE -v $1 mac)
+	declare node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
 	need_reread=0
 	logerr "updating info for $1 ip=${node_genders_ip} mac=${node_genders_mac}"
 	test ${node_genders_mac} && test ${node_genders_ip} && \
@@ -68,14 +68,14 @@ function update_host_ethers {
 			echo "$node_genders_ip ${1}.${DOMAIN} ${1}" >> $HOSTSFILE
 		fi
 	if [ -n ${node_genders_mac} ] ; then
-		trans_mac=${node_genders_mac,,}
+		declare trans_mac=${node_genders_mac,,}
 		trans_mac=$(echo $trans_mac | tr ':' '-')
 		create_node_entry ${1} pxelinux.cfg/${NETNR}-${trans_mac}
 	fi
 }
 
 function update_hosts {
-	node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
+	declare node_genders_ip=$(nodeattr -f $GENDERSFILE -v $1 ip)
 	need_reread=0
 	test ${node_genders_ip} && grep $node_genders_ip $HOSTSFILE >> /dev/null
 	if [ $? -eq 1 ] ; then
@@ -97,7 +97,7 @@ function get_boot_entries() {
 	done
 }
 function get_node_boot() {
-	bootimage=$(nodeattr -f $GENDERSFILE -v $1 bootimage)
+	declare bootimage=$(nodeattr -f $GENDERSFILE -v $1 bootimage)
 	if [ -n $bootimage ] ; then
 		echo "LABEL $bootimage"
 		for label_entry in $(nodeattr -f $GENDERSFILE -l $bootimage); do
@@ -116,8 +116,8 @@ function create_node_entry() {
 		echo "but was called: create_node_entry $*"
 		exit 1
 	fi
-	node=$1
-	nodefile=$2
+	declare node=$1
+	declare nodefile=$2
 	cat > ${PXEROOTDIR}/${nodefile} <<EOF
 PROMPT 0
 MENU TITLE $node
@@ -136,7 +136,7 @@ $(get_boot_entries mandatoryentry)
 LABEL Save to database and reboot
 	COM32 reboot.c32
 LABEL go_back
-	MENU LABEL Go to default
+	MENU LABEL Go to clustduct menu
 	KERNEL menu.c32
 	APPEND pxelinux.cfg/default
 EOF
@@ -198,13 +198,13 @@ case $1 in
 		# check if we know the mac
 		genders_host_bymac=$(nodeattr -f $GENDERSFILE -qn mac=${2})
 		# wc -l does not work with substitutions, so no echo $var below
-		if [ $( nodeattr -f $GENDERSFILE -qn mac=${2} | wc -l) -gt 1 ] ; then
+		if [ $(nodeattr -f $GENDERSFILE -qn mac=${2} | wc -l) -gt 1 ] ; then
 			echo "genders database corrupted, more than one entry for mac=${2}"
 			echo "entries are ${genders_host_bymac}"
 			exit 1
 		fi
 		genders_host_byip=$(nodeattr -f $GENDERSFILE -qn ip=${3})
-		if [ $( nodeattr -f $GENDERSFILE -qn ip=${3} | wc -l) -gt 1 ] ; then
+		if [ $(nodeattr -f $GENDERSFILE -qn ip=${3} | wc -l) -gt 1 ] ; then
 			echo "genders database corrupted, more than one entry for ip=${3}"
 			echo "entries are ${genders_host_byip}"
 			exit 1
@@ -212,7 +212,7 @@ case $1 in
                 # mac is unknown to genders
 		if [ -z ${genders_host_bymac} ] ; then
 			if [ -z ${genders_host_byip} ] && [ -e $LINEAR_ADD ] ; then
-				freehost=$(nodeattr -f $GENDERSFILE -X mac ip | head -n1)
+				freehost=$(nodeattr -f $GENDERSFILE -nX mac ip | head -n1)
 				if [ $freehost ] ; then
 					logerr "old: add mac=${2} to ${freehost}"
 					echo "${freehost} mac=${2}" >> $GENDERSFILE 
@@ -363,15 +363,15 @@ LABEL $node
 EOF
 			# to the node file
 			create_node_entry $node ${PXEDIR}/${node}.clustduct_pxe  
-			genders_mac=$(nodeattr -f $GENDERSFILE -v $node mac)
-			if [ ! -z ${genders_mac} ] ; then
-				trans_mac=${genders_mac,,}
+			declare genders_mac=$(nodeattr -f $GENDERSFILE -v $node mac)
+			if [ -n ${genders_mac} ] ; then
+				declare trans_mac=${genders_mac,,}
 				trans_mac=$(echo $trans_mac | tr ':' '-')
 				create_node_entry $node pxelinux.cfg/${NETNR}-${trans_mac}
 			fi
 			if [ $counter -eq ${base} ] ; then
 				for n in $(seq 1 $exponent) ; do
-					modulo=$(echo "scale=0; $i%($base^$n)" | bc -l)
+					declare modulo=$(echo "scale=0; $i%($base^$n)" | bc -l)
 					if [ $modulo -eq 0 ] ; then
 						cat >> ${PXEROOTDIR}/${PXEDIR}/clustduct-nodes  <<EOF
 LABEL go_back
