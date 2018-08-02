@@ -99,9 +99,33 @@ A basic database can be created with the command
 ```
 for i in $(seq 1 20); do echo "compute-$(printf %02g $i) ip=192.168.100.$(($i+10))"; done > /etc/genders
 ```
-###JeOS leap 15.0 image creation
+For booting the node ther must also be entries in the genders database. Boot from local disk can allowed by adding following entry to */etc/genders*
+```
+local menu=label\wsboot\wsfrom\wslocal\wsdisk,com32=chain.c32,append=hd0,mandatoryentry
 
-Following two git a
+```
+For creating the boot entries for every node call the command
+```
+/usr/sbin/clustduct.sh pxemenu
+```
+and popuble the file */etc/hosts/* with
+```
+/usr/sbin/clustduct.sh init
+```
+#### NOTE
+The genders database must not have have spaces, thus we use *\\ws* instead. Also the equal character *=* is interpreted, so we use *\\ws* instead.
+
+When the keyword *mandatoryentry* is used a boot entry for this 'image' for every node is created.
+
+
+
+
+###JeOS leap 15.0 image creation
+Kiwi must be installed with
+```
+zypper in python3-kiwi
+```
+For the creation of boot images do following
 ```
 git clone https://github.com/SUSE/kiwi-descriptions
 ```
@@ -121,25 +145,67 @@ to
 ```
 installpxe="true"
 ```
+For easy deployment to the section *<oemconfig>* the entry
+```
+<oem-unattended>true</oem-unattended>
+```
+is added and as well the packgage *salt-minion* is added in the section *<packages type="image">* with
+```
+<package name="salt-minion"/>
+```
 
-Now the image can be built with
+Now the image can be perpared with
 ```
-kiwi-ng --type oem system build \
+kiwi-ng --type oem system prepare\
 --description kiwi-descriptions/suse/x86\_64/suse-leap-15.0-JeOS \
---target-dir /tmp/myimage_oem_pxe
+--root /tmp/leap15_oem_pxe
 ```
-In order to serve this image, it has to be transfered to the right location. For this create an directory under the tfp tree with 
+As a root image now exists, we can easily some minor modifications there, like copying the ssh-key, enable the *salt-minion* with
+````
+systemctl --root /tmp/leap15_oem_pxe enable salt-minion
+```
+and configured by adding following two lines to the file */tmp/leap15_oem_pxe/etc/salt/minion*
+```
+master: sles15-build600-salt.cluster.suse
+startup_states: highstate
+```
+As the hostname should be updated by *dhcp* we have to enable this by setting
+```
+DHCLIENT_SET_HOSTNAME="yes"
+```
+in the file */tmp/leap15_oem_pxe/etc/sysconfig/network/dhcp*
+
+In order to serve this image, it has to be packed with the command
+```
+mkdir /tmp/packed_image
+kiwi --type=oem system create --root=/tmp/leap15_oem_pxe  \
+--target-dir=/tmp/packed_image
+```
+To send the images to the nodes, the right location must created with with 
 ```
 mkdir -p /srv/tftpboot/leap15/
 ```
 now extract image to the direcotry with
 ```
 cd /srv/tftpboot/leap15/
-tar xJf /tmp/myimage_oem_pxe/LimeJeOS-Leap-15.0.x86_64-1.15.0.install.tar.xz
+tar xJf /tmp/packed_image/LimeJeOS-Leap-15.0.x86_64-1.15.0.install.tar.xz
 
 ```
+To make the image available in genders add following two lines to */etc/genders*
+```
+JeOS15.0 APPEND=initrd\eq/leap15/pxeboot.initrd.xz\wsrd.kiwi.install.pxe\wsrd.kiwi.install.image=tftp://192.168.100.253/leap15/LimeJeOS-Leap-15.0.xz,KERNEL=/leap15/LimeJeOS-Leap-15.0.kernel
+compute-[01-20] bootimage=JeOS15
+```
+and flatten/recreate the genders database and the bootsructure with
+```
+/usr/sbin/clustduct.sh clean
+/usr/sbin/clustduct.sh pxemenu
+```
+
+
+# Deprecated Info
 ### pxe boot structure
-The initial menu for pxe boot has to be created with the file */srv/tftpboot/pxelinux.cfg/default* with the content
+The initial menu for pxe boot has created with the file */srv/tftpboot/pxelinux.cfg/default* with the content
 ```
 DEFAULT menu
 PROMPT 0
@@ -165,9 +231,6 @@ JeOS15.0 APPEND=initrd\eq/leap15/pxeboot.initrd.xz\wsrd.kiwi.install.pxe\wsrd.ki
 local MENU=DEFAULT,APPEND=hd0,COM32=chain.c32,MENU=LABEL\ws(local\wsboot)
 ```
 
-#### NOTE
-The genders database must not have have spaces, thus we use *\\ws* instead. Also the equal character *=* is interpreted, so we use *\\ws* instead.
-
 ### Create pxe boot structure
 The pxe boot structure can be created with the command
 ```
@@ -186,5 +249,11 @@ chgrp tftp /etc/hosts
 chmod g+w /etc/hosts
 chgrp tftp /etc/ethers
 chmod g+w /etc/ethers
+```
+jkljlk
+```
+kiwi-ng --type oem system build \
+--description kiwi-descriptions/suse/x86\_64/suse-leap-15.0-JeOS \
+--target-dir /tmp/myimage_oem_pxe
 ```
 
