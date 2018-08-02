@@ -67,7 +67,7 @@ function update_host_ethers {
 			need_reread=1
 			echo "$node_genders_ip ${1}.${DOMAIN} ${1}" >> $HOSTSFILE
 		fi
-	if [ -n ${node_genders_mac} ] ; then
+	if [ ! -e ${node_genders_mac} ] ; then
 		declare trans_mac=${node_genders_mac,,}
 		trans_mac=$(echo $trans_mac | tr ':' '-')
 		create_node_entry ${1} pxelinux.cfg/${NETNR}-${trans_mac}
@@ -98,7 +98,7 @@ function get_boot_entries() {
 }
 function get_node_boot() {
 	declare bootimage=$(nodeattr -f $GENDERSFILE -v $1 bootimage)
-	if [ -n $bootimage ] ; then
+	if [ ! -e $bootimage ] ; then
 		echo "LABEL $bootimage"
 		for label_entry in $(nodeattr -f $GENDERSFILE -l $bootimage); do
 			echo $label_entry | grep 'nextboot=' > /dev/null || \
@@ -290,24 +290,24 @@ case $1 in
 		fi # end for grep clustduct_pxe
 		# check for the sent/selected image so that we honor the nextboot entry
 		genders_host_byip=$(nodeattr -f $GENDERSFILE -qn ip=${3})
-		if [ -n $genders_host_byip ] ; then
+		if [ ! -e $genders_host_byip ] ; then
 			bootimage=$(nodeattr -f $GENDERSFILE -v $genders_host_byip  bootimage)
 			# we have a bootimage
-			if [ -n $bootimage ] ; then
+			if [ ! -e $bootimage ] ; then
 				# get from the append entry the labled rd.kiwi.install.image value
 				append=$(nodeattr -f $GENDERSFILE -v $bootimage append)
-				if [ -n $append ] ; then
+				if [ ! -e $append ] ; then
 					os_image=$(echo $append |  sed 's/.*rd.kiwi.install.pxewsrd.kiwi.install.image\\eq\([^,]*\),.*/\1/' | cut -f 6,7  -d '/')	
 					echo "got following os_image ${PXEROOTDIR}$os_image compared to $4"
 					if [ "x${PXEROOTDIR}$os_image" == "x$4" ] ; then
 						# check if the bootimage requires an action, what means it has the entry nextboot
 						nextboot=$(nodeattr -f $GENDERSFILE -v $bootimage nextboot)
-						if [ -n $nextboot ] ; then
+						if [ ! -e $nextboot ] ; then
 							# subsitute bootimaget entry 
 							logerr "changed boot entry for node=$genders_host_byip from $bootimage to $nextboot"
 							sed -i "s/\(^${genders_host_byip}.*bootimage=\)$bootimage/\1$nextboot/" $GENDERSFILE
 							genders_mac=$(nodeattr -f $GENDERSFILE -v ${genders_host_byip} mac)
-							if [ -n ${genders_mac} ] ; then
+							if [ ! -e ${genders_mac} ] ; then
 								trans_mac=${genders_mac,,}
 								trans_mac=$(echo $trans_mac | tr ':' '-')
 								create_node_entry $genders_host_byip pxelinux.cfg/${NETNR}-${trans_mac}
@@ -362,11 +362,13 @@ LABEL $node
 	APPEND ${PXEDIR}/${node}.clustduct_pxe
 EOF
 			# to the node file
+			logerr "create general entry for node $node in file ${PXEDIR}/${node}.clustduct_pxe"
 			create_node_entry $node ${PXEDIR}/${node}.clustduct_pxe  
 			declare genders_mac=$(nodeattr -f $GENDERSFILE -v $node mac)
-			if [ -n ${genders_mac} ] ; then
+			if [ ! -e ${genders_mac} ] ; then
 				declare trans_mac=${genders_mac,,}
 				trans_mac=$(echo $trans_mac | tr ':' '-')
+				logerr "create special entry for node $node in file pxelinux.cfg/${NETNR}-${trans_mac}"
 				create_node_entry $node pxelinux.cfg/${NETNR}-${trans_mac}
 			fi
 			if [ $counter -eq ${base} ] ; then
