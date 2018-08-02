@@ -84,6 +84,10 @@ read-ethers
 user=root
 group=root
 ```
+  * the default route might also be set with
+```
+dhcp-option=option:router,192.168.100.1
+```
 
 
 
@@ -166,7 +170,7 @@ systemctl --root /tmp/leap15_oem_pxe enable salt-minion
 ```
 and configured by adding following two lines to the file */tmp/leap15_oem_pxe/etc/salt/minion*
 ```
-master: sles15-build600-salt.cluster.suse
+master: leap15-clustduct.cluster.suse
 startup_states: highstate
 ```
 As the hostname should be updated by *dhcp* we have to enable this by setting
@@ -193,7 +197,9 @@ tar xJf /tmp/packed_image/LimeJeOS-Leap-15.0.x86_64-1.15.0.install.tar.xz
 ```
 To make the image available in genders add following two lines to */etc/genders*
 ```
-JeOS15.0 APPEND=initrd\eq/leap15/pxeboot.initrd.xz\wsrd.kiwi.install.pxe\wsrd.kiwi.install.image=tftp://192.168.100.253/leap15/LimeJeOS-Leap-15.0.xz,KERNEL=/leap15/LimeJeOS-Leap-15.0.kernel
+JeOS15 APPEND=initrd\eq/leap15/pxeboot.initrd.xz\wsrd.kiwi.install.pxe\ws\
+rd.kiwi.install.image\eqtftp://192.168.100.254/leap15/LimeJeOS-Leap-15.0.xz,\
+KERNEL=/leap15/LimeJeOS-Leap-15.0.kernel
 compute-[01-20] bootimage=JeOS15
 ```
 and flatten/recreate the genders database and the bootsructure with
@@ -201,7 +207,117 @@ and flatten/recreate the genders database and the bootsructure with
 /usr/sbin/clustduct.sh clean
 /usr/sbin/clustduct.sh pxemenu
 ```
+#Configuraion management with salt
+## Prerequesteries
+Configure a *nfs-server* with following *exports*
+```
+/usr/lib/hpc	*(ro,root_squash,sync,no_subtree_check)
+/usr/share/lmod/modulefiles	*(ro,root_squash,sync,no_subtree_check)
+/usr/share/lmod/moduledeps	*(ro,root_squash,sync,no_subtree_check)
+```
+## Salt formulas
+The salt formula */srv/salt/compute-node.sls* is used to configure the compute nodes. The formula has the contents
+```
+nfs-client:
+    pkg.installed: []
+neovim:
+    pkg.installed: []
+lua-lmod:
+    pkg.installed: []
+genders:
+    pkg.installed: []
 
+/usr/lib/hpc:
+   mount.mounted:
+      - device: leap15-clustduct:/usr/lib/hpc
+      - fstype: nfs
+      - mkmnt: True
+      - opts:
+         - defaults
+      - require:
+        - pkg: nfs-client
+
+/usr/share/lmod/modulefiles:
+   mount.mounted:
+      - device: leap15-clustduct:/usr/share/lmod/modulefiles
+      - fstype: nfs
+      - mkmnt: True
+      - opts:
+         - defaults
+      - require:
+        - pkg: nfs-client
+
+/usr/share/lmod/moduledeps:
+   mount.mounted:
+      - device: leap15-clustduct:/usr/share/lmod/moduledeps
+      - fstype: nfs
+      - mkmnt: True
+      - opts:
+         - defaults
+      - require:
+        - pkg: nfs-client
+
+/etc/profile.d/lmod.sh:
+    file.managed:
+      - source: salt://shared_module/lmod.sh
+      - mode: 644
+      - user: root
+      - group: root
+      - require:
+        - pkg: lua-lmod
+
+/etc/profile.d/lmod.csh:
+    file.managed:
+      - source: salt://shared_module/lmod.csh
+      - mode: 644
+      - user: root
+      - group: root
+      - require:
+        - pkg: lua-lmod
+
+/etc/genders:
+    file.managed:
+      - contents_pillar: genders:database
+      - mode: 644
+      - user: root
+      - group: root
+      - require:
+        - pkg: genders
+```
+and the defintion for the node as *srv/salt/top.sls*
+```
+base:
+  'compute-[0-2][0-9].cluster.suse':
+    - compute-node
+
+```
+we also have to create the config files for *lus-lmod* with
+```
+mkdir /srv/salt/shared_module
+cp /etc/profile.d/lmod* /srv/salt/shared_module
+```
+and create a pillar for distributing the genders database by creating the file */srv/pillar/top.sls* with the content
+```
+base:
+  '*':
+    - genders
+```
+and the genders pillar */srv/pillar/genders.sls*
+```
+genders:
+    database: |
+        {{ salt['cmd.run']('nodeattr --expand' ) | indent(8) }}
+```
+Now accept the key with
+```
+salt-key -A
+```
+and the node should install the rest.
+## Bug
+The genders database must be readable by salt, change this with
+```
+chmod 644 /etc/genders
+```
 
 # Deprecated Info
 ### pxe boot structure
