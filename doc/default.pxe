@@ -1,0 +1,15 @@
+DEFAULT menu
+PROMPT 0
+MENU TITLE Hombrew pxe boot
+TIMEOUT 100
+ONTIMEOUT Reboot
+
+
+LABEL ClustDuct
+        MENU LABEL Boot as node ...
+        KERNEL menu.c32
+        APPEND clustduct/clustduct-nodes
+
+LABEL Reboot
+        MENU LABEL Reboot node
+        COM32 reboot.c32

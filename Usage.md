@@ -18,19 +18,11 @@ Additional purpose beyond bare metal provision may depend on following packages
 
 ##Quick start guide
 ###Prerequesteries
-#### Software installation
-In the first step install the required packages on the management node. This can be done with
-```
-zypper in dnsmasq genders syslinux
-```
-We also need following two git archives
-```
-git clone https://github.com/SUSE/kiwi-descriptions
-```
-which are the descriptions for creating the node images. As second archive the clustduct script which povides the connection between the **genders** database and **dnsmasq** is needed.
-```
-git clone https://github.com/mslacken/clustduct.git
-```
+This software was tested with a *openSuSE Leap 15.0* which has following prerequestaries:
+  * no firewall
+  * sshd running
+  * no apparmor
+  * static ip address
 
 #### Disable apparmor
 In some profiles **apparmor** is installed and has a preconfigured profile for dnsmasq. This must be disabled which can be done by two ways. You can 
@@ -50,48 +42,73 @@ aa-disable /etc/apparmor.d/usr.sbin.dnsmasq
 ##### Note
 Disabeling the **apparmor** profile introduces some security issues, which we are ignoring a the moment.
 
+### Software installation with prepackaged clustduct
+In the first step the repo of clustuct is added and the package is installed
+```
+zypper ar \
+https://download.opensuse.org/repositories/home:/mslacken:/prov/\
+openSUSE_Leap_15.0/home:mslacken:prov.repo
+zypper ref
+zypper in clustduct
+```
 ### Dnsmasq configuration
-The dnsmasq configuration file following options have to be changed:
-```
-interface=eth0
-```
-or 
-```
-listen-address=192.168.100.253
-```
-If an additional dynamic range is wanted, the option 
-```
-dhcp-range=192.168.100.50,192.168.100.60,12h
-```
-can be set.
-The local domain can be set via the keyword 
+In the dnsmasq configuration file */etc/dnsmasq.conf* following options have to be changed:
+
+  * the local domain:
 ```
 local=/cluster.suse/
 ```
-For the image deployment *tftp* has to enabled via
+  * if an additional dynamic range is wanted:
+```
+dhcp-range=192.168.100.50,192.168.100.60,12h
+```
+  * image deployment via *tftp* has to enabled via
 ```
 enable-tftp
 tftp-root=/srv/tftpboot/
 ```
-and set the pxe boot option
+  * pxe boot option for *x86_64*
 ```
 dhcp-boot=pxelinux.0
 ```
-Now dnsmasq has be configured in such a way, that it reads the host informations from the genders database
+  * connect dnsmasq the genders database via clustduct
 ```
-dhcp-script=path_to_clustduct/clustduct.sh
+dhcp-script=/usr/sbin/clustduct.sh
 ```
+  * enable mac managenemnt
+```
+read-ethers
+```
+  * run dnsmasq as root (will change in the future)
+```
+user=root
+group=root
+```
+
+
+
 
 ### Genders databases configuration for the nodes
-Now the cluster nodes have to be defined by creating a genders database for them. For every node a new line containing the *ip*-attribute, which will be used as ip address for the compute node, must be set.
+Now the cluster nodes have to be defined by creating a genders database for them. The genders database, a flat file in */etc/genders*, must contain for every node a new line wth the *ip*-attribute, which will be used as ip address for the compute node. If the mac addresses of the hosts are known they could also be added now, if not they can be set on the pxe boot menu or will be added on the node boot up.
 ```
-test-node1 ip=192.168.100.1
-test-node2 ip=192.168.100.2
-test-node3 ip=192.168.100.3,mac=aa:bb:cc:dd:ee:ff
+compute-01 ip=192.168.100.11
+compute-02 ip=192.168.100.12
+compute-03 ip=192.168.100.13,mac=aa:bb:cc:dd:ee:ff
 ```
-If the mac addresses of the hosts are known they could also be added now, if not they can be set on the pxe boot menu or will be added on the node boot up.
-
+A basic database can be created with the command
+```
+for i in $(seq 1 20); do echo "compute-$(printf %02g $i) ip=192.168.100.$(($i+10))"; done > /etc/genders
+```
 ###JeOS leap 15.0 image creation
+
+Following two git a
+```
+git clone https://github.com/SUSE/kiwi-descriptions
+```
+which are the descriptions for creating the node images. As second archive the clustduct script which povides the connection between the **genders** database and **dnsmasq** is needed.
+```
+git clone https://github.com/mslacken/clustduct.git
+```
 The previosily downloaded kiwi descriptions allow an easy creation of images for installing the compute nodes. The configuration for the JeOS Leap 15.0 can be found under 
 ```
 kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/config.xml
@@ -135,9 +152,10 @@ LABEL ClustDuct
 
 
 ```
-For proper funactionality the necessay components of the *syslinux* package has to copied to the *tftpboot* dir
+For proper funactionality the necessary components of the *syslinux* package has to copied to the *tftpboot* dir
 ```
-cp /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 /usr/share/syslinux/reboot.c32 /srv/tftpboot/
+cp /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 \
+/usr/share/syslinux/reboot.c32 /srv/tftpboot/
 ```
 ### image/boot entries in genders
 Boot entries for the nodes will also be created from the genders database. Entries must have the following form
