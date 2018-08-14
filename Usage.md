@@ -1,7 +1,7 @@
-#Bare metal deplpoyment with dnsmasq and kiwi
+# Bare metal deplpoyment with dnsmasq and kiwi
 Currtently it is not possible to deploy the HPC nodes on bare metal via any tools. This document provides intial thougths and describes the necessary tools and steps.
 
-##Used software
+## Used software
 For the bare metal provisioning we need following software packages
 
    * **dnsmasq** in for dhpc, dns and tftp managment
@@ -16,8 +16,8 @@ Additional purpose beyond bare metal provision may depend on following packages
    * **salt** for node configuration
    * **powerman** for management of the physical machines
 
-##Quick start guide
-###Prerequesteries
+## Quick start guide
+### Prerequesteries
 This software was tested with a *openSuSE Leap 15.0* which has following prerequestaries:
   * no firewall
   * sshd running
@@ -165,7 +165,7 @@ kiwi-ng --type oem system prepare\
 --root /tmp/leap15_oem_pxe
 ```
 As a root image now exists, we can easily some minor modifications there, like copying the ssh-key, enable the *salt-minion* with
-````
+```
 systemctl --root /tmp/leap15_oem_pxe enable salt-minion
 ```
 and configured by adding following two lines to the file */tmp/leap15_oem_pxe/etc/salt/minion*
@@ -215,6 +215,7 @@ Configure a *nfs-server* with following *exports*
 /usr/share/lmod/modulefiles	*(ro,root_squash,sync,no_subtree_check)
 /usr/share/lmod/moduledeps	*(ro,root_squash,sync,no_subtree_check)
 ```
+
 ## Salt formulas
 The salt formula */srv/salt/compute-node.sls* is used to configure the compute nodes. The formula has the contents
 ```
