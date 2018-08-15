@@ -238,17 +238,10 @@ case $1 in
 		fi
 	;;
 	tftp)
-		logerr "Called with tftp, options were $*" 
 		# test if called file contains clustduct_pxe
 		echo $4 | grep "clustduct_pxe" > /dev/null
 		if [ $? -eq 0 ] ; then
 			nodename=$(basename $4 | sed 's/\.clustduct_pxe//')
-			# handle image and installation part
-			bootimage=$(nodeattr -f $GENDERSFILE -v $nodename bootimage)
-			if [ ! -z $bootimage ] ; then
-				# just do something if we have a bootimage
-				echo "booted with image $*"	
-			fi
 			# handle ip and mac address part
 			genders_ip=$(nodeattr -f $GENDERSFILE -v $nodename ip)
 			genders_mac=$(nodeattr -f $GENDERSFILE -v $nodename mac)
@@ -290,14 +283,14 @@ case $1 in
 		fi # end for grep clustduct_pxe
 		# check for the sent/selected image so that we honor the nextboot entry
 		genders_host_byip=$(nodeattr -f $GENDERSFILE -qn ip=${3})
-		if [ ! -e $genders_host_byip ] ; then
+		if [ ! -z $genders_host_byip ] ; then
 			bootimage=$(nodeattr -f $GENDERSFILE -v $genders_host_byip  bootimage)
 			# we have a bootimage
-			if [ ! -e $bootimage ] ; then
+			if [ ! -z $bootimage ] ; then
 				# get from the append entry the labled rd.kiwi.install.image value
 				append=$(nodeattr -f $GENDERSFILE -v $bootimage append)
-				if [ ! -e $append ] ; then
-					os_image=$(echo $append |  sed 's/.*rd.kiwi.install.pxewsrd.kiwi.install.image\\eq\([^,]*\),.*/\1/' | cut -f 6,7  -d '/')	
+				if [ ! -z $append ] ; then
+					os_image=$(echo $append |  sed 's/.*rd.kiwi.install.image\\eq\([^,]*\),.*/\1/' | cut -f 6,7  -d '/')	
 					echo "got following os_image ${PXEROOTDIR}$os_image compared to $4"
 					if [ "x${PXEROOTDIR}$os_image" == "x$4" ] ; then
 						# check if the bootimage requires an action, what means it has the entry nextboot
