@@ -35,6 +35,13 @@ end
 -- update the ethers file with ip and mac
 function update_ether(ip_address,mac_address) 
 	print("will manipulate file "..config.clustduct["ethers"])
+	local file = open(config.clustduct["ethers"],"rb")
+	if not file then error("could not open file "..config.clustduct["ethers"]) end
+	local file_content = file:read("*a")
+	print("content of "..config.clustduct["ethers"].." is")
+	print(content)
+		
+
 end
 function init() 
 	g_db = require("genders")
@@ -42,6 +49,7 @@ function init()
 	db_file="/etc/genders"
 	handle=g_db.new(db_file)
 	print("opened genders database "..db_file.." with "..#handle:getnodes().." nodes")
+	if config.clustduct["linear_add"] then print("will add nodes linear") else print("do nothing with new nodes") end
 end
 
 function shutdown() 
@@ -56,6 +64,8 @@ function lease(action,args)
 		local node=handle:query("mac="..args["mac_address"])
 		if node~= nil and #node == 1 then
 			print("found node "..node[1].." with mac="..args["mac_address"])
+		else
+			print("node with mac "..args["mac_address"].." is not known to genders")
 		end
 	elseif action == "add" then
 		print("in add tree")
@@ -63,8 +73,13 @@ function lease(action,args)
 		local node=handle:query("mac="..args["mac_address"])
 		if node~= nil and #node == 1 then
 			print("found node "..node[1].." with mac="..args["mac_address"])
+			update_ether(args["ip_address"],args["mac_address"])
+		else
+			print("node with mac "..args["mac_address"].." is not known to genders")
 		end
 
+	elseif action == "del" then
+		print("in del, but do not care about vanished leases")
 	else
 		print("unknown action "..action.." doing nothing")
 	end
