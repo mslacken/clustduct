@@ -61,7 +61,7 @@ function update_db(node, attr)
 	local db_file = config.clustduct["genders"]
 	local file = io.open(db_file,"a")
 	if not file then error("could not open file "..db_file) end
-	file:write(node.." "..attr)
+	file:write("\n"..node.." "..attr)
 	file:close()
 end
 
@@ -176,5 +176,14 @@ end
 
 function tftp(action,args)
 	print("tftp was called with "..action)
+	tprint(args)
+	-- check if ip is in database
+	local node = handle:query("ip="..args["destination_address"])
+	if #node != 1 then return end
+	local node_attrs = handle:getattrs(node[1])
+	-- check if node has bootimage entry
+	if node_attrs["bootimage"] == nil then return end
+	-- check if image is local
+	if node_attrs["bootimage"] == "local" then return end
 end
 
