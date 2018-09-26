@@ -150,7 +150,7 @@ function lease(action,args)
 		elseif config.clustduct["linear_add"] then
 			-- add the new node to genders, update ethers/hosts
 			local node = handle:query("~mac&&ip")
-			if node ~= nil then 
+			if #node >= 1 then 
 				print("add node with mac "..args["mac_address"].." as "..node[1])
 				local node_attr = handle:getattr(node[1])
 				update_db(node[1],"mac="..args["mac_address"])
@@ -179,11 +179,42 @@ function tftp(action,args)
 	tprint(args)
 	-- check if ip is in database
 	local node = handle:query("ip="..args["destination_address"])
-	if #node != 1 then return end
-	local node_attrs = handle:getattrs(node[1])
-	-- check if node has bootimage entry
-	if node_attrs["bootimage"] == nil then return end
-	-- check if image is local
-	if node_attrs["bootimage"] == "local" then return end
+	if node == nil then return end
+	if #node == 1 then
+		print("getting attributes for node "..node[1])
+		local node_attrs = handle:getattr(node[1])
+		-- check if boot exists and return, check for install=$IMAGE
+		-- afterwards, so that the boot preceeds the install
+		-- after installation the boot=local may be added, ram only
+		-- installation will only provide a boot
+		-- for reinstalltion the boot entry must be removed
+		-- check if node has boot entry
+		if node_attrs["boot"] ~= nil then return end
+		print(node[1].." has boot section")
+		-- also do nothing if install was node defined
+		if node_attrs["install"] == nil then return end
+		print(node[1].." has install section "..node_attrs["install"])
+		-- check if the install entry is valid
+		if not handle:isnode(node_attrs["install"]) then return end
+		-- check is we have trigger
+		local install_attr = handle:getattr(node_attrs["install"])
+		if install_attr == nil then return end
+		print("got following attrs for "..node_attrs["install"])
+		tprint(install_attr)
+		if install_attr["trigger"] == nil then return end
+		-- check if trigger is in the transfered file
+		if args["file_name"] ~= nil then
+			print("parsing file_name "..args["file_name"].." for trigger "..install_attr["trigger"])
+			local ftrigger= string.gsub(install_attr["trigger"],"(%W)","%%%1")
+			if string.find(args["file_name"],"%g*"..ftrigger.."%g*") and install_attr["nextboot"] ~= nil then
+				print("trigger "..install_attr["trigger"].." setting "..node[1].." boot="..install_attr["nextboot"])
+				update_db(node[1],"boot="..install_attr["nextboot"])
+			end
+		end
+
+	else
+		-- check if node specific config was selected
+
+	end
 end
 
