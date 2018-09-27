@@ -177,11 +177,30 @@ end
 function tftp(action,args)
 	print("tftp was called with "..action)
 	tprint(args)
+	print("Will determine if we "..args["file_name"].." is node specific")
+	-- check if node specific config was selected, which may called from other ip
+	-- we can always return as installation is always done with node specific file
+	local nodefromfile = string.match(args["file_name"],"%g+/(%g+).clustduct_%g*")
+	if nodefromfile == nil then return end
+	print("This is node "..nodefromfile)
+	-- check for valid nodename
+	if not handle:isnode(nodefromfile) then return end
 	-- check if ip is in database
 	local node = handle:query("ip="..args["destination_address"])
-	if node == nil then return end
+	if node == nil or node ~= nodefromfile then
+		print("Will set ip="..args["destination_address"].." to "..nodefromfile)
+		-- read adress from the arp table
+		local shellhandle = io.popen("ip neigh show "..args["destination_address"])
+		local shellresult = shellhandle:read("*a")
+		shellhandle:close()
+		-- 
+		local mac = string.match(shellresult,"%g+%s%g+%s%g+%s%g+%s(%g+)%s%g+")
+		if mac ~= nil then
+			-- just update the mac in genders, the rest will be handled by old
+			update_db(nodefromfile,"mac="..mac)
+		return 
+	end
 	if #node == 1 then
-		print("getting attributes for node "..node[1])
 		local node_attrs = handle:getattr(node[1])
 		-- check if boot exists and return, check for install=$IMAGE
 		-- afterwards, so that the boot preceeds the install
@@ -190,31 +209,22 @@ function tftp(action,args)
 		-- for reinstalltion the boot entry must be removed
 		-- check if node has boot entry
 		if node_attrs["boot"] ~= nil then return end
-		print(node[1].." has boot section")
 		-- also do nothing if install was node defined
 		if node_attrs["install"] == nil then return end
-		print(node[1].." has install section "..node_attrs["install"])
 		-- check if the install entry is valid
 		if not handle:isnode(node_attrs["install"]) then return end
 		-- check is we have trigger
 		local install_attr = handle:getattr(node_attrs["install"])
 		if install_attr == nil then return end
-		print("got following attrs for "..node_attrs["install"])
-		tprint(install_attr)
 		if install_attr["trigger"] == nil then return end
 		-- check if trigger is in the transfered file
 		if args["file_name"] ~= nil then
-			print("parsing file_name "..args["file_name"].." for trigger "..install_attr["trigger"])
-			local ftrigger= string.gsub(install_attr["trigger"],"(%W)","%%%1")
+			local ftrigger = string.gsub(install_attr["trigger"],"(%W)","%%%1")
 			if string.find(args["file_name"],"%g*"..ftrigger.."%g*") and install_attr["nextboot"] ~= nil then
 				print("trigger "..install_attr["trigger"].." setting "..node[1].." boot="..install_attr["nextboot"])
 				update_db(node[1],"boot="..install_attr["nextboot"])
 			end
 		end
-
-	else
-		-- check if node specific config was selected
-
 	end
 end
 
