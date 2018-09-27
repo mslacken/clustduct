@@ -73,6 +73,17 @@ function send_signal()
 	end
 end
 
+function allowfromhost(node)
+	local node_attrs = handle:getattr(node)
+	-- should not happen but be sure
+	if node_attrs == nil then return false end
+	if node_attrs["block"] then 
+		return false
+	else
+		return true
+	return false
+end
+
 -- following functions must be present for a working together with dnsmasq
 function init() 
 	g_db = require("genders")
@@ -189,6 +200,7 @@ function tftp(action,args)
 	local node = handle:query("ip="..args["destination_address"])
 	if node == nil or node ~= nodefromfile then
 		print("Will set ip="..args["destination_address"].." to "..nodefromfile)
+		if not allowfromhost(nodefromfile) then return end
 		-- read adress from the arp table
 		local shellhandle = io.popen("ip neigh show "..args["destination_address"])
 		local shellresult = shellhandle:read("*a")
@@ -198,7 +210,8 @@ function tftp(action,args)
 		if mac ~= nil then
 			-- just update the mac in genders, the rest will be handled by old
 			update_db(nodefromfile,"mac="..mac)
-		return 
+			return 
+		end
 	end
 	if #node == 1 then
 		local node_attrs = handle:getattr(node[1])
