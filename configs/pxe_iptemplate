@@ -1,0 +1,13 @@
+PROMPT 0
+MENU TITLE $node
+DEFAULT menu
+TIMEOUT 100
+$entry
+MENU SEPERATOR
+LABEL Save to database and reboot
+	COM32 reboot.c32
+LABEL go_back
+	MENU LABEL Go to clustduct menu
+	KERNEL menu.c32
+	APPEND pxelinux.cfg/default
+
