@@ -4,24 +4,6 @@ cnf_filename = "/etc/clustduct.conf"
 need_signal = false
 -- read the config
 config = {}
--- simple print function for tables
-function tprint (t, s)
-    for k, v in pairs(t) do
-        local kfmt = '["' .. tostring(k) ..'"]'
-        if type(k) ~= 'string' then
-            kfmt = '[' .. k .. ']'
-        end
-        local vfmt = '"'.. tostring(v) ..'"'
-        if type(v) == 'table' then
-            tprint(v, (s or '')..kfmt)
-        else
-            if type(v) ~= 'string' then
-                vfmt = tostring(v)
-            end
-            print(type(t)..(s or '')..kfmt..' = '..vfmt)
-        end
-    end
-end
 
 -- update given file with the line first_arg.." "..second_arg
 -- but checks if string is present in file
@@ -29,8 +11,8 @@ end
 
 function update_file(first_arg,second_arg,filename) 
 	-- print("will manipulate file "..config.clustduct["ethers"])
-	local file = io.open(filename,"r")
-	if not file then error("could not open file "..filename) end
+	local file, err = io.open(filename,"r")
+	if not file then error(err) end
 	local file_content = file:read("*a")
 	file:close()
 	-- escape as the search args could have magical characted like -
@@ -95,12 +77,14 @@ function init()
 	else
 		-- no config file found
 		print(err)
-		config["clustduct"] = {}
-		config.clustduct["ethers"]="/etc/ethers"
-		config.clustduct["hosts"]="/etc/hosts"
-		config.clustduct["genders"]="/etc/genders"
-		config.clustduct["linear_add"]=true
 	end
+	if config["clustduct"] == nil then config["clustduct"] = {} end
+	-- initialize with defaults
+	if config.clustduct["ethers"] == nil then config.clustduct["ethers"]="/etc/ethers" end
+	if config.clustduct["hosts"]==nil then config.clustduct["hosts"]="/etc/hosts" end
+	if config.clustduct["genders"]== nil then  config.clustduct["genders"]="/etc/genders" end
+	if config.clustduct["linear_add"]==nil then config.clustduct["linear_add"]=false end
+	if config.clustduct["confdir"]==nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
 	handle = g_db.new(config.clustduct["genders"])
 	print("opened genders database "..config.clustduct["genders"].." with "..#handle:getnodes().." nodes")
 	-- will update hosts file now
