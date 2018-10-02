@@ -22,17 +22,19 @@ function create_pxe_node_file(node,handle,config)
 	local file, err = io.open(config.clustduct["confdir"].."pxe_iptemplate","r")
 	if not file then error(err) end
 	local pxe_template = file:read("*a")
-	pxe_template = string.gsub(pxe_template,"$node",node)	
 	file:close()
 	-- now create boot entry table
 	local entries = {} 
 	local node_args = handle:getattr(node)
+	pxe_template = string.gsub(pxe_template,"$NODE",node)	
+	if node_args["ip"] ~= nil then 
+		pxe_template = string.gsub(pxe_template,"$IP",node_args["ip"]) end
+	if node_args["mac"] ~= nil then 
+		pxe_template = string.gsub(pxe_template,"$MAC",node_args["mac"]) end
 	if node_args["boot"] ~= nil then
-		create_entry(node_args["boot"],entries)
-	end
+		create_entry(node_args["boot"],entries) end
 	if node_args["install"] ~= nil then
-		create_entry(node_args["install"],entries)
-	end
+		create_entry(node_args["install"],entries) end
 	local mand_entries = handle:query("mandatory")
 	if mand_entries ~= nil then  
 		for key,value in pairs(mand_entries) do
@@ -56,14 +58,59 @@ function create_pxe_node_file(node,handle,config)
 		if entries[key]["append"] ~= nil then 
 			sentr = sentr.."\tAPPEND "..entries[key]["append"].."\n"
 		end
+		sentr = sentr.."\n"
 	end
-	pxe_template = string.gsub(pxe_template,"$entry",sentr)	
+	pxe_template = string.gsub(pxe_template,"$ENTRY",sentr)	
 
 	print(pxe_template)
 
 end
 
 function create_pxe_grub_file(node,handle,config) 
+	local file, err = io.open(config.clustduct["confdir"].."grub_iptemplate","r")
+	if not file then error(err) end
+	local grub_template = file:read("*a")
+	file:close()
+	-- now create boot entry table
+	local entries = {} 
+	local node_args = handle:getattr(node)
+	grub_template = string.gsub(grub_template,"$NODE",node)	
+	if node_args["ip"] ~= nil then 
+		grub_template = string.gsub(grub_template,"$IP",node_args["ip"]) end
+	if node_args["mac"] ~= nil then 
+		grub_template = string.gsub(grub_template,"$MAC",node_args["mac"]) end
+	if node_args["boot"] ~= nil then
+		create_entry(node_args["boot"],entries) end
+	if node_args["install"] ~= nil then
+		create_entry(node_args["install"],entries) end
+	local mand_entries = handle:query("mandatory")
+	if mand_entries ~= nil then  
+		for key,value in pairs(mand_entries) do
+			create_entry(value,entries)
+		end
+	end
+	local sentr = ""
+	for key,val in pairs(entries) do
+		sentr = sentr.."LABEL "..key.."\n"
+		if entries[key]["menu"] ~= nil then 
+			sentr = sentr.."\tMENU LABEL "..entries[key]["menu"].."\n"
+		else
+			sentr = sentr.."\tMENU LABEL "..key.."\n"
+		end
+		if entries[key]["com32"] ~= nil then 
+			sentr = sentr.."\tCOM32 "..entries[key]["com32"].."\n"
+		end
+		if entries[key]["kernel"] ~= nil then 
+			sentr = sentr.."\tKERNEL "..entries[key]["kernel"].."\n"
+		end
+		if entries[key]["append"] ~= nil then 
+			sentr = sentr.."\tAPPEND "..entries[key]["append"].."\n"
+		end
+		sentr = sentr.."\n"
+	end
+	grub_template = string.gsub(grub_template,"$ENTRY",sentr)	
+
+	print(grub_template)
 
 end
 

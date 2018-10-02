@@ -1,8 +1,10 @@
 PROMPT 0
-MENU TITLE $node
+MENU TITLE $NODE $IP $MAC 
 DEFAULT menu
 TIMEOUT 100
-$entry
+
+$ENTRY
+
 MENU SEPERATOR
 LABEL Save to database and reboot
 	COM32 reboot.c32
