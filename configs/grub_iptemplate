@@ -1,0 +1,12 @@
+set timeout=10
+
+$ENTRY
+
+menuentry 'Save to database and reboot' {
+	reboot
+}
+
+menuentry 'Go back to main' {
+	configfile /clustduct/grub-main.cfg	
+}
+
