@@ -55,8 +55,16 @@ function create_pxe_node_file(node,handle,config)
 		if entries[key]["kernel"] ~= nil then 
 			sentr = sentr.."\tKERNEL "..entries[key]["kernel"].."\n"
 		end
-		if entries[key]["append"] ~= nil then 
-			sentr = sentr.."\tAPPEND "..entries[key]["append"].."\n"
+		if entries[key]["append"] ~= nil or entries[key]["initrd"] ~= nil then 
+			sentr = sentr.."\tAPPEND "
+			if entries[key]["append"] ~= nil then
+				sentr = sentr..entries[key]["append"] end
+			if entries[key]["initrd"] ~= nil then
+				sentr = sentr..entries[key]["initrd"] end
+		for i in 0..100 do 
+			local pxe_key = "pxe"..i
+			if entries[key][pxe_key] ~= nil then
+				sentr = sentr..entries[key][pxe_key].."\n" end
 		end
 		sentr = sentr.."\n"
 	end
@@ -91,22 +99,35 @@ function create_pxe_grub_file(node,handle,config)
 	end
 	local sentr = ""
 	for key,val in pairs(entries) do
-		sentr = sentr.."LABEL "..key.."\n"
+		sentr = sentr.."menuentry"..key.."\n"
 		if entries[key]["menu"] ~= nil then 
-			sentr = sentr.."\tMENU LABEL "..entries[key]["menu"].."\n"
+			sentr = sentr.."'"..entries[key]["menu"].."' {"
 		else
-			sentr = sentr.."\tMENU LABEL "..key.."\n"
-		end
-		if entries[key]["com32"] ~= nil then 
-			sentr = sentr.."\tCOM32 "..entries[key]["com32"].."\n"
+			sentr = sentr.."'"..entries[key]["menu"].."' {"
+			sentr = sentr.."'"..key.."' {"
 		end
 		if entries[key]["kernel"] ~= nil then 
-			sentr = sentr.."\tKERNEL "..entries[key]["kernel"].."\n"
+			sentr = sentr.."\tlinuxefi "..entries[key]["kernel"].."\n" end
+		if entries[key]["linuxefi"] ~= nil then 
+			sentr = sentr.."\tlinuxefi "..entries[key]["linuxefi"].."\n" end
+		if entries[key]["append"] ~= nil then
+			sentr = sentr.." "..entries[key]["append"].."\n" end
+		if entries[key]["initrd"] ~= nil then
+			sentr = "initrdefi "..sentr..entries[key]["initrd"].."\n" end
+		if entries[key]["initrdefi"] ~= nil then
+			sentr = "initrdefi "..sentr..entries[key]["initrdefi"].."\n" end
+		if entries[key]["set"] ~= nil then
+			sentr = "set"..sentr..entries[key]["set"].."\n" end
+		if entries[key]["chainloader"] ~= nil then
+			sentr = "chainloader"..sentr..entries[key]["chainloader"].."\n" end
+		if entries[key]["grub"] ~= nil then
+			sentr = sentr..entries[key]["grub"].."\n" end
+		for i in 0..100 do 
+			local grub_key = "grub"..i
+			if entries[key][grub_key] ~= nil then
+				sentr = sentr..entries[key][grub_key].."\n" end
 		end
-		if entries[key]["append"] ~= nil then 
-			sentr = sentr.."\tAPPEND "..entries[key]["append"].."\n"
-		end
-		sentr = sentr.."\n"
+		sentr = sentr.."\n}\n"
 	end
 	grub_template = string.gsub(grub_template,"$ENTRY",sentr)	
 
