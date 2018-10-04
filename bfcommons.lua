@@ -61,7 +61,8 @@ function create_pxe_node_file(node,handle,config)
 				sentr = sentr..entries[key]["append"] end
 			if entries[key]["initrd"] ~= nil then
 				sentr = sentr..entries[key]["initrd"] end
-		for i in 0..100 do 
+		end
+		for i = 0,100 do 
 			local pxe_key = "pxe"..i
 			if entries[key][pxe_key] ~= nil then
 				sentr = sentr..entries[key][pxe_key].."\n" end
@@ -70,11 +71,33 @@ function create_pxe_node_file(node,handle,config)
 	end
 	pxe_template = string.gsub(pxe_template,"$ENTRY",sentr)	
 
-	print(pxe_template)
-
+	local ofile_name = config.clustduct["outdir"].."/"
+	ofile_name = string.gsub(ofile_name,"//","/")
+	ofile_name = ofile_name.."clustduct_node."..node..".pxe"
+	if not file_exists(ofile_name) then
+		local ofile, err = io.open(ofile_name,"w")
+		if err ~= nil then
+			error(err)
+		end
+		ofile:write(pxe_template)
+	end
+	if node_args["mac"] ~= nil then 
+		print("Have following mac "..node_args["mac"])
+		local mac_filename = config.clustduct["tftpdir"].."/"
+		mac_filename = string.gsub(mac_filename,"//","/")
+		mac_filename = mac_filename.."default."..node_args["mac"]
+		if not file_exists(mac_filename) then
+			local mac_file_out = "KERNEL menu.c32\nAPPEND "..ofile_name
+			local ofile, err = io.open(mac_filename,"w")
+			if err ~= nil then
+				error(err)
+			end
+			ofile:write(mac_file_out)
+		end
+	end
 end
 
-function create_pxe_grub_file(node,handle,config) 
+function create_grub_node_file(node,handle,config) 
 	local file, err = io.open(config.clustduct["confdir"].."grub_iptemplate","r")
 	if not file then error(err) end
 	local grub_template = file:read("*a")
@@ -99,30 +122,30 @@ function create_pxe_grub_file(node,handle,config)
 	end
 	local sentr = ""
 	for key,val in pairs(entries) do
-		sentr = sentr.."menuentry"..key.."\n"
+		sentr = sentr.."menuentr "..key
 		if entries[key]["menu"] ~= nil then 
-			sentr = sentr.."'"..entries[key]["menu"].."' {"
+			sentr = sentr.."'"..entries[key]["menu"].."' {\n"
 		else
-			sentr = sentr.."'"..entries[key]["menu"].."' {"
-			sentr = sentr.."'"..key.."' {"
+			sentr = sentr.."'"..key.."' {\n"
 		end
 		if entries[key]["kernel"] ~= nil then 
-			sentr = sentr.."\tlinuxefi "..entries[key]["kernel"].."\n" end
+			sentr = sentr.."\tlinuxefi "..entries[key]["kernel"] end
 		if entries[key]["linuxefi"] ~= nil then 
-			sentr = sentr.."\tlinuxefi "..entries[key]["linuxefi"].."\n" end
-		if entries[key]["append"] ~= nil then
+			sentr = sentr.."\tlinuxefi "..entries[key]["linuxefi"] end
+		if entries[key]["append"] ~= nil and 
+			(entries[key]["kernel"] ~= nil or entries[key]["linuxefi"] ~= nil ) then
 			sentr = sentr.." "..entries[key]["append"].."\n" end
 		if entries[key]["initrd"] ~= nil then
-			sentr = "initrdefi "..sentr..entries[key]["initrd"].."\n" end
+			sentr = sentr.."\tinitrdefi "..entries[key]["initrd"].."\n" end
 		if entries[key]["initrdefi"] ~= nil then
-			sentr = "initrdefi "..sentr..entries[key]["initrdefi"].."\n" end
+			sentr = sentr.."\tinitrdefi "..entries[key]["initrdefi"].."\n" end
 		if entries[key]["set"] ~= nil then
-			sentr = "set"..sentr..entries[key]["set"].."\n" end
+			sentr = sentr.."\tset "..entries[key]["set"].."\n" end
 		if entries[key]["chainloader"] ~= nil then
-			sentr = "chainloader"..sentr..entries[key]["chainloader"].."\n" end
+			sentr = sentr.."\tchainloader"..entries[key]["chainloader"].."\n" end
 		if entries[key]["grub"] ~= nil then
 			sentr = sentr..entries[key]["grub"].."\n" end
-		for i in 0..100 do 
+		for i = 0,100 do 
 			local grub_key = "grub"..i
 			if entries[key][grub_key] ~= nil then
 				sentr = sentr..entries[key][grub_key].."\n" end
@@ -131,6 +154,30 @@ function create_pxe_grub_file(node,handle,config)
 	end
 	grub_template = string.gsub(grub_template,"$ENTRY",sentr)	
 
+	local ofile_name = config.clustduct["outdir"].."/"
+	ofile_name = string.gsub(ofile_name,"//","/")
+	ofile_name = ofile_name.."clustduct_node."..node..".grub"
+	if not file_exists(ofile_name) then
+		local ofile, err = io.open(ofile_name,"w")
+		if err ~= nil then
+			error(err)
+		end
+		ofile:write(pxe_template)
+	end
+	if node_args["mac"] ~= nil then 
+		print("Have following mac "..node_args["mac"])
+		local mac_filename = config.clustduct["tftpdir"].."/"
+		mac_filename = string.gsub(mac_filename,"//","/")
+		mac_filename = mac_filename.."default."..node_args["mac"]
+		if not file_exists(mac_filename) then
+			local mac_file_out = "KERNEL menu.c32\nAPPEND "..ofile_name
+			local ofile, err = io.open(mac_filename,"w")
+			if err ~= nil then
+				error(err)
+			end
+			ofile:write(mac_file_out)
+		end
+	end
 	print(grub_template)
 
 end
@@ -163,4 +210,9 @@ function create_entry(entry,entries)
 		entries[entry] = boot_args
 	end
 
+end
+
+function file_exists(name)
+	local f=io.open(name,"r")
+	if f~=nil then io.close(f) return true else return false end
 end
