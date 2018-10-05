@@ -32,13 +32,13 @@ function create_pxe_node_file(node,handle,config)
 	if node_args["mac"] ~= nil then 
 		pxe_template = string.gsub(pxe_template,"$MAC",node_args["mac"]) end
 	if node_args["boot"] ~= nil then
-		create_entry(node_args["boot"],entries) end
+		create_entry(node_args["boot"],entries,handle) end
 	if node_args["install"] ~= nil then
-		create_entry(node_args["install"],entries) end
+		create_entry(node_args["install"],entries,handle) end
 	local mand_entries = handle:query("mandatory")
 	if mand_entries ~= nil then  
 		for key,value in pairs(mand_entries) do
-			create_entry(value,entries)
+			create_entry(value,entries,handle)
 		end
 	end
 	local sentr = ""
@@ -82,7 +82,6 @@ function create_pxe_node_file(node,handle,config)
 		ofile:write(pxe_template)
 	end
 	if node_args["mac"] ~= nil then 
-		print("Have following mac "..node_args["mac"])
 		local mac_filename = config.clustduct["tftpdir"].."/"
 		mac_filename = string.gsub(mac_filename,"//","/")
 		mac_filename = mac_filename.."default."..node_args["mac"]
@@ -111,13 +110,13 @@ function create_grub_node_file(node,handle,config)
 	if node_args["mac"] ~= nil then 
 		grub_template = string.gsub(grub_template,"$MAC",node_args["mac"]) end
 	if node_args["boot"] ~= nil then
-		create_entry(node_args["boot"],entries) end
+		create_entry(node_args["boot"],entries,handle) end
 	if node_args["install"] ~= nil then
-		create_entry(node_args["install"],entries) end
+		create_entry(node_args["install"],entries,handle) end
 	local mand_entries = handle:query("mandatory")
 	if mand_entries ~= nil then  
 		for key,value in pairs(mand_entries) do
-			create_entry(value,entries)
+			create_entry(value,entries,handle)
 		end
 	end
 	local sentr = ""
@@ -162,27 +161,81 @@ function create_grub_node_file(node,handle,config)
 		if err ~= nil then
 			error(err)
 		end
-		ofile:write(pxe_template)
+		ofile:write(grub_template)
 	end
-	if node_args["mac"] ~= nil then 
-		print("Have following mac "..node_args["mac"])
-		local mac_filename = config.clustduct["tftpdir"].."/"
-		mac_filename = string.gsub(mac_filename,"//","/")
-		mac_filename = mac_filename.."default."..node_args["mac"]
-		if not file_exists(mac_filename) then
-			local mac_file_out = "KERNEL menu.c32\nAPPEND "..ofile_name
-			local ofile, err = io.open(mac_filename,"w")
-			if err ~= nil then
-				error(err)
-			end
-			ofile:write(mac_file_out)
+	local ip_filename = config.clustduct["outdir"].."/"
+	ip_filename = string.gsub(ip_filename,"//","/")
+	ip_filename = ip_filename.."grub.cfg."..node_args["ip"]
+	if not file_exists(ip_filename) then
+		local ip_file_out = "configfile "..ofile_name
+		local ofile, err = io.open(ip_filename,"w")
+		if err ~= nil then
+			error(err)
 		end
+		ofile:write(ip_file_out)
 	end
-	print(grub_template)
 
 end
 
 function create_pxe_structure(handle,config)
+	local incrementcount=0
+	local nodes = handle:query("ip")
+	-- nr_nodes=$(nodeattr -f $GENDERSFILE -n ip | wc -l)
+	-- base=${BASE:-10}
+	local exponent = math.floor(math.log(#nodes)/math.log(config.clustduct["base"]))
+	local counter=1
+	local level=0
+	local i=1
+	local output_str = ""
+	-- clean up preexisting entries
+	local ofile_name = config.clustduct["outdir"].."/"
+	ofile_name = string.gsub(ofile_name,"//","/")
+	ofile_name = ofile_name.."nodes.pxe"
+	if file_exists(ofile_name) then return end
+	for key, node in pairs(nodes)  do
+		if counter == 1  then
+			local i_inc = i - 1
+			for n = 1, exponent  do
+				local modulo = i_inc%(config.clustduct["base"]^n)
+				if modulo == 0  then
+					output_str = output_str.."MENU BEGIN list_"..node.."\nMENU LABEL Boot "..node.." to ENDNODE\n"
+					level = level+1
+				end
+			end
+		end	
+		-- to pxe menu structure
+		output_str = output_str.."LABEL "..node.."\n\tMENU LABEL Boot as node "..node.."\n\tKERNEL menu.c32\n\tAPPEND "..config.clustduct["outdir"].."/clustduct_node."..node..".grub\n"
+		-- to the node file
+		create_pxe_node_file(node,handle,config) 
+		if counter == config.clustduct["base"]  then
+			for n = 1, exponent do
+				local modulo = i%(config.clustduct["base"]^n)
+				if modulo == 0 then
+					output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tMENU EXIT\nMENU END"
+					output_str = string.gsub(output_str,"ENDNODE",node)
+
+					level = level - 1
+				end
+			end
+		end
+		if counter < config.clustduct["base"]  then
+			counter = counter + 1
+		else
+			counter = 1
+		end
+		i = i + 1
+	end
+	for n = 1, level do
+		output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tMENU EXIT\n\tMENU END\n"
+	end
+	output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tKERNEL menu.c32\n\tAPPEND ~\n"
+	if not file_exists(ofile_name) then
+		local ofile, err = io.open(ofile_name,"w")
+		if err ~= nil then
+			error(err)
+		end
+		ofile:write(output_str)
+	end
 
 end
 
@@ -199,10 +252,9 @@ function clean_genders(table)
 	end
 end
 
-function create_entry(entry,entries)
+function create_entry(entry,entries,handle)
 	-- avoid double entries
 	if entries[entry] ~= nil then return end
-	print("creating attr for entry "..entry)
 	local boot_args = handle:getattr(entry)
 	if boot_args ~= nil then 
 		-- do the pattern substiutions like \eq -> = here

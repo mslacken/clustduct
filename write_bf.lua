@@ -2,25 +2,23 @@
 g_db = require("genders")
 require("bfcommons")
 -- handle must be global
-cnf_filename = "/etc/clustduct.conf"
+local cnf_filename = "/etc/clustduct.conf"
 -- read the config
-config = {}
-cnf_file,err = loadfile(cnf_filename,"t",config)
-if cnf_file then
-	print("found config file "..cnf_filename)
-	cnf_file()
-else print(err) end
+local config = {}
+local cnf_file,err = loadfile(cnf_filename,"t",config)
+if cnf_file then cnf_file() else print(err) end
 if config.clustduct["confdir"]==nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
-handle = g_db.new(config.clustduct["genders"])
+local handle = g_db.new(config.clustduct["genders"])
 -- variables
-node = nil
+local node = nil
 
 -- parse commandline
 getopt = require 'posix.unistd'.getopt
-for r, optarg, optind in getopt(arg, 'hc:n:o:') do
+for r, optarg, optind in getopt(arg, 'hc:n:o:b:') do
 	if r == '?' then
 		return print('unrecognized option', arg[optind -1])
 	end
+	local base = 10
 	if r == 'h' then
 		print '-n      create config only for given and not all nodes'
 		print '-h      print this help text'
@@ -28,21 +26,24 @@ for r, optarg, optind in getopt(arg, 'hc:n:o:') do
 		print '-c ARG  overwrite confdir'
 	elseif r == 'c' then
 		config.clustduct["confdir"] = optarg
+	elseif r == 'b' then
+		base = optarg
 	elseif r == 'o' then
 		config.clustduct["outdir"] = optarg
 		config.clustduct["tftpdir"] = optarg
 	elseif r == 'n' then
 		node = optarg
 	end
+	config.clustduct["base"] = base
 end
 
-nodes = handle:query("ip")
+local nodes = handle:query("ip")
 if node ~= nil then
 	create_pxe_node_file(node,handle,config)
 	create_grub_node_file(node,handle,config)
 else
+	create_pxe_structure(handle,config)
 	for ntale,node in pairs(nodes) do 
-		create_pxe_node_file(node,handle,config)
 		create_grub_node_file(node,handle,config)
 	end
 end
