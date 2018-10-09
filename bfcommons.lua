@@ -84,7 +84,7 @@ function create_pxe_node_file(node,handle,config)
 	if node_args["mac"] ~= nil then 
 		local mac_filename = config.clustduct["tftpdir"].."/"
 		mac_filename = string.gsub(mac_filename,"//","/")
-		mac_filename = mac_filename.."default."..node_args["mac"]
+		mac_filename = mac_filename.."pxelinux.cfg/default."..node_args["mac"]
 		if not file_exists(mac_filename) then
 			local mac_file_out = "KERNEL menu.c32\nAPPEND "..ofile_name
 			local ofile, err = io.open(mac_filename,"w")
@@ -190,13 +190,12 @@ function create_pxe_structure(handle,config)
 	-- clean up preexisting entries
 	local ofile_name = config.clustduct["outdir"].."/"
 	ofile_name = string.gsub(ofile_name,"//","/")
-	ofile_name = ofile_name.."nodes.pxe"
+	ofile_name = ofile_name.."menu.pxe"
 	if file_exists(ofile_name) then return end
 	for key, node in pairs(nodes)  do
 		if counter == 1  then
-			local i_inc = i - 1
 			for n = 1, exponent  do
-				local modulo = i_inc%(config.clustduct["base"]^n)
+				local modulo = (i-1)%(config.clustduct["base"]^n)
 				if modulo == 0  then
 					output_str = output_str.."MENU BEGIN list_"..node.."\nMENU LABEL Boot "..node.." to ENDNODE\n"
 					level = level+1
@@ -204,7 +203,7 @@ function create_pxe_structure(handle,config)
 			end
 		end	
 		-- to pxe menu structure
-		output_str = output_str.."LABEL "..node.."\n\tMENU LABEL Boot as node "..node.."\n\tKERNEL menu.c32\n\tAPPEND "..config.clustduct["outdir"].."/clustduct_node."..node..".grub\n"
+		output_str = output_str.."LABEL "..node.."\n\tMENU LABEL Boot as node "..node.."\n\tKERNEL menu.c32\n\tAPPEND "..config.clustduct["outdir"].."/clustduct_node."..node..".pxe\n"
 		-- to the node file
 		create_pxe_node_file(node,handle,config) 
 		if counter == config.clustduct["base"]  then
@@ -240,6 +239,64 @@ function create_pxe_structure(handle,config)
 end
 
 function create_grub_structure(handle,config)
+	local incrementcount=0
+	local nodes = handle:query("ip")
+	-- nr_nodes=$(nodeattr -f $GENDERSFILE -n ip | wc -l)
+	-- base=${BASE:-10}
+	local exponent = math.floor(math.log(#nodes)/math.log(config.clustduct["base"]))
+	local counter = 1
+	local i=1
+	local output_str = ""
+	local menu_str = ""
+	-- clean up preexisting entries
+	local ofile_name_base = config.clustduct["outdir"].."/"
+	ofile_name_base = string.gsub(ofile_name_base,"//","/")
+	local ofile_name = ""
+	for key, node in pairs(nodes)  do
+		if counter == 1  then
+			output_str = "set timeout=10\n"
+			for n = 1, exponent  do
+				local modulo = (i-1)%(config.clustduct["base"]^n)
+				if modulo == 0  then
+					-- output_str = "set timeout=10\nmenuentry 'Boot from node "..node.." to ENDNODE {\n"
+					ofile_name = ofile_name_base.."node_"..i
+					menu_str = menu_str.."menuentry 'Boot from "..node
+				end
+			end
+		end	
+		-- to pxe menu structure
+		output_str = output_str.."menuentry 'Boot as '"..node.." {\n\tconfigfile "..config.clustduct["outdir"].."/clustduct_node."..node..".grub\n}\n"
+		-- to the node file
+		create_grub_node_file(node,handle,config) 
+		if counter < config.clustduct["base"] then
+			counter = counter + 1
+		else
+			output_str = output_str.."menuentry 'Go back...' {\n\tconfigfile "..config.clustduct["outdir"].."/grub-main.cfg\n}\n"
+			ofile_name = ofile_name.."_to_node_"..i..".grub"
+			menu_str = menu_str.." to "..node.." {\n\t".."configfile "..ofile_name.."\n}\n"
+			if not file_exists(ofile_name) then
+				local ofile, err = io.open(ofile_name,"w")
+				if err ~= nil then
+					error(err)
+				end
+				ofile:write(output_str)
+			end
+			counter = 1
+		end
+		i = i + 1
+	end
+	local menu_file_str = config.clustduct["outdir"].."/"
+	menu_file_str = string.gsub(menu_file_str,"//","/")
+	menu_file_str = menu_file_str.."menu.grub"
+	if not file_exists(menu_file_str) then
+		local ofile, err = io.open(menu_file_str,"w")
+		if err ~= nil then
+			error(err)
+		end
+		ofile:write(menu_str)
+	end
+	-- output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tKERNEL menu.c32\n\tAPPEND ~\n"
+
 
 end
 

@@ -7,7 +7,9 @@ local cnf_filename = "/etc/clustduct.conf"
 local config = {}
 local cnf_file,err = loadfile(cnf_filename,"t",config)
 if cnf_file then cnf_file() else print(err) end
-if config.clustduct["confdir"]==nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
+if config.clustduct["confdir"]== nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
+config.clustduct["outdir"] = "/srv/tftpboot/clustduct"
+config.clustduct["tftpdir"] = "/srv/tftpboot"
 local handle = g_db.new(config.clustduct["genders"])
 -- variables
 local node = nil
@@ -24,6 +26,7 @@ for r, optarg, optind in getopt(arg, 'hc:n:o:b:') do
 		print '-h      print this help text'
 		print '-o      overwrite output dir'
 		print '-c ARG  overwrite confdir'
+		return 0
 	elseif r == 'c' then
 		config.clustduct["confdir"] = optarg
 	elseif r == 'b' then
@@ -43,7 +46,5 @@ if node ~= nil then
 	create_grub_node_file(node,handle,config)
 else
 	create_pxe_structure(handle,config)
-	for ntale,node in pairs(nodes) do 
-		create_grub_node_file(node,handle,config)
-	end
+	create_grub_structure(handle,config)
 end
