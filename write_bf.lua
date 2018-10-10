@@ -10,6 +10,7 @@ if cnf_file then cnf_file() else print(err) end
 if config.clustduct["confdir"]== nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
 config.clustduct["outdir"] = "/srv/tftpboot/clustduct"
 config.clustduct["tftpdir"] = "/srv/tftpboot"
+config.clustduct["netclass"] = "01"
 local handle = g_db.new(config.clustduct["genders"])
 -- variables
 local node = nil

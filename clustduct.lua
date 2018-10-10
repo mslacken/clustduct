@@ -3,7 +3,7 @@ handle = nil
 cnf_filename = "/etc/clustduct.conf"
 need_signal = false
 -- read the config
-config = {}
+local config = {}
 
 -- update given file with the line first_arg.." "..second_arg
 -- but checks if string is present in file
@@ -45,6 +45,7 @@ function update_db(node, attr)
 	if not file then error("could not open file "..db_file) end
 	file:write("\n"..node.." "..attr)
 	file:close()
+	need_signal = true
 end
 
 function send_signal()
@@ -63,14 +64,17 @@ function allowfromhost(node)
 		return false
 	else
 		return true
+	end
 	return false
 end
 
 -- following functions must be present for a working together with dnsmasq
 function init() 
 	g_db = require("genders")
+	require("bfcommons")
 	print("init was called")
 	local cnf_file,err = loadfile(cnf_filename,"t",config)
+	-- initialize with defaults
 	if cnf_file then
 		print("found config file "..cnf_filename)
 		cnf_file()
@@ -79,12 +83,14 @@ function init()
 		print(err)
 	end
 	if config["clustduct"] == nil then config["clustduct"] = {} end
-	-- initialize with defaults
 	if config.clustduct["ethers"] == nil then config.clustduct["ethers"]="/etc/ethers" end
-	if config.clustduct["hosts"]==nil then config.clustduct["hosts"]="/etc/hosts" end
-	if config.clustduct["genders"]== nil then  config.clustduct["genders"]="/etc/genders" end
-	if config.clustduct["linear_add"]==nil then config.clustduct["linear_add"]=false end
-	if config.clustduct["confdir"]==nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
+	if config.clustduct["hosts"] == nil then config.clustduct["hosts"]="/etc/hosts"  end
+	if config.clustduct["genders"] == nil then config.clustduct["genders"]="/etc/genders"  end
+	if config.clustduct["linear_add"] == nil then config.clustduct["linear_add"]=false  end
+	if config.clustduct["confdir"] == nil then config.clustduct["confdir"]="/etc/clustduct.d/"  end
+	if config.clustduct["outdir"]  == nil then config.clustduct["outdir"] = "/srv/tftpboot/clustduct" end
+	if config.clustduct["tftpdir"]  == nil then config.clustduct["tftpdir"] = "/srv/tftpboot" end
+	if config.clustduct["netclass"]  == nil then config.clustduct["netclass"] = "01" end
 	handle = g_db.new(config.clustduct["genders"])
 	print("opened genders database "..config.clustduct["genders"].." with "..#handle:getnodes().." nodes")
 	-- will update hosts file now
@@ -121,6 +127,9 @@ function lease(action,args)
 			end
 			update_file(node_attrs["ip"],node_names,config.clustduct["hosts"])
 			update_file(node_attrs["mac"],node_attrs["ip"],config.clustduct["ethers"])
+			print(type(node[1]),type(handle),type(config))
+			create_pxe_node_file(node[1],handle,config) 
+			create_grub_node_file(node[1],handle,config) 
 			-- hosts/ethers is reread after signal is sned
 			send_signal()
 		else
@@ -157,6 +166,8 @@ function lease(action,args)
 				end
 				update_file(node_attr["ip"],node_names,config.clustduct["hosts"])
 				update_file(args["mac_address"],node_attr["ip"],config.clustduct["ethers"])
+				create_pxe_node_file(node[1],handle,config) 
+				create_grub_node_file(node[1],handle,config) 
 				-- hosts/ethers is reread after signal is sned
 				send_signal()
 			end
@@ -171,11 +182,9 @@ end
 
 function tftp(action,args)
 	print("tftp was called with "..action)
-	tprint(args)
-	print("Will determine if we "..args["file_name"].." is node specific")
 	-- check if node specific config was selected, which may called from other ip
 	-- we can always return as installation is always done with node specific file
-	local nodefromfile = string.match(args["file_name"],"%g+/(%g+).clustduct_%g*")
+	local nodefromfile = string.match(args["file_name"],"%g+/clustduct_node.(%g+).pxe")
 	if nodefromfile == nil then return end
 	print("This is node "..nodefromfile)
 	-- check for valid nodename
@@ -194,6 +203,8 @@ function tftp(action,args)
 		if mac ~= nil then
 			-- just update the mac in genders, the rest will be handled by old
 			update_db(nodefromfile,"mac="..mac)
+			handle:reload(config.clustduct["genders"])
+			send_signal()
 			return 
 		end
 	end
