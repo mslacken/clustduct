@@ -202,10 +202,15 @@ function tftp(action,args)
 		local mac = string.match(shellresult,"%g+%s%g+%s%g+%s%g+%s(%g+)%s%g+")
 		if mac ~= nil then
 			-- just update the mac in genders, the rest will be handled by old
-			update_db(nodefromfile,"mac="..mac)
-			handle:reload(config.clustduct["genders"])
-			send_signal()
-			return 
+			-- and check if mac is in the database
+			local genders_mac = handle:query("mac="..mac)
+			if genders_mac == nil then
+				update_db(nodefromfile,"mac="..mac)
+				handle:reload(config.clustduct["genders"])
+				send_signal()
+			else
+				print("WARNING: mac="..mac.." is allreay in database for node "..genders_mac[1])
+			end
 		end
 	end
 	if #node == 1 then
