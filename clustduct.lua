@@ -184,7 +184,7 @@ function tftp(action,args)
 	print("tftp was called with "..action)
 	-- check if node specific config was selected, which may called from other ip
 	-- we can always return as installation is always done with node specific file
-	local nodefromfile = string.match(args["file_name"],"%g+/clustduct_node.(%g+).pxe")
+	local nodefromfile = string.match(args["file_name"],"%g+/clustduct_node%.(%g+)%.%g+")
 	if nodefromfile == nil then return end
 	print("This is node "..nodefromfile)
 	-- check for valid nodename
@@ -204,12 +204,13 @@ function tftp(action,args)
 			-- just update the mac in genders, the rest will be handled by old
 			-- and check if mac is in the database
 			local genders_mac = handle:query("mac="..mac)
-			if genders_mac == nil then
+			tprint(genders_mac)
+			if genders_mac == nil or #genders_mac == 0 then
 				update_db(nodefromfile,"mac="..mac)
 				handle:reload(config.clustduct["genders"])
 				send_signal()
 			else
-				print("WARNING: mac="..mac.." is allreay in database for node "..genders_mac[1])
+				print("WARNING: mac="..mac.." is allreay in database")
 			end
 		end
 	end
