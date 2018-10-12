@@ -7,6 +7,6 @@ menuentry 'Save to database and reboot' {
 }
 
 menuentry 'Go back to main' {
-	configfile /clustduct/grub-main.cfg	
+	configfile /clustduct/grub.cfg	
 }
 
