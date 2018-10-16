@@ -144,7 +144,7 @@ function create_grub_node_file(node,handle,config)
 		if entries[key]["chainloader"] ~= nil then
 			sentr = sentr.."\tchainloader"..entries[key]["chainloader"].."\n" end
 		if entries[key]["grub"] ~= nil then
-			sentr = sentr..entries[key]["grub"].."\n" end
+			sentr = sentr.."\t"..entries[key]["grub"].."\n" end
 		for i = 0,100 do 
 			local grub_key = "grub"..i
 			if entries[key][grub_key] ~= nil then
@@ -319,6 +319,7 @@ function clean_genders(table)
 		local t_str = value
 		t_str = string.gsub(t_str,"\\ws"," ")
 		t_str = string.gsub(t_str,"\\eq","=")
+		t_str = string.gsub(t_str,"\\co",",")
 		table[key] = t_str
 	end
 end
