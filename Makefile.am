@@ -10,9 +10,10 @@ clustductconf_DATA = configs/grub_iptemplate configs/pxe_iptemplate
 clustductdocdir = $(docdir)
 clustductdoc_DATA = doc/* Usage.md COPYING Bugs.md
 
-tftpdir= $(prefix)/srv/tftpboot/pxelinux.cfg
+#FIXME Evil hack to point to the real /
+tftpdir= $(prefix)/../srv/tftpboot/pxelinux.cfg
 tftp_DATA = configs/default
 
-efidir = $(prefix)/srv/tftpboot/EFI/x86
+efidir = $(prefix)/../srv/tftpboot/EFI/x86
 efi_DATA = configs/grub.cfg
 
