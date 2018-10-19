@@ -4,8 +4,11 @@ sbin_SCRIPTS = src/clustduct.lua src/write_bf.lua
 
 luaexec_SCRIPTS = src/bfcommons.lua
 
-clustductconfdir = $(sysconfdir)/clustduct.d
-clustductconf_DATA = configs/grub_iptemplate configs/pxe_iptemplate
+clustductconfddir = $(sysconfdir)/clustduct.d
+clustductconfd_DATA = configs/grub_iptemplate configs/pxe_iptemplate configs/clustduct.conf
+
+clustductconfdir = $(sysconfdir)
+clustductconf_DATA = configs/clustduct.conf
 
 clustductdocdir = $(docdir)
 clustductdoc_DATA = doc/* Usage.md COPYING Bugs.md
