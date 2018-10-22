@@ -7,10 +7,10 @@ local cnf_filename = "/etc/clustduct.conf"
 local config = {}
 local cnf_file,err = loadfile(cnf_filename,"t",config)
 if cnf_file then cnf_file() else print(err) end
-if config.clustduct["confdir"]== nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
-config.clustduct["outdir"] = "/srv/tftpboot/clustduct"
-config.clustduct["tftpdir"] = "/srv/tftpboot"
-config.clustduct["netclass"] = "01"
+if config.clustduct["confdir" ]== nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
+if config.clustduct["outdir"] == nil then config.clustduct["outdir"] = "/srv/tftpboot/clustduct" end
+if config.clustduct["tftpdir"] == nil then config.clustduct["tftpdir"] = "/srv/tftpboot" end
+if config.clustduct["netclass"] == nil then config.clustduct["netclass"] = "01" end
 local handle = g_db.new(config.clustduct["genders"])
 -- variables
 local node = nil
@@ -21,7 +21,6 @@ for r, optarg, optind in getopt(arg, 'hc:n:o:b:') do
 	if r == '?' then
 		return print('unrecognized option', arg[optind -1])
 	end
-	local base = 10
 	if r == 'h' then
 		print '-n      create config only for given and not all nodes'
 		print '-h      print this help text'
@@ -31,14 +30,13 @@ for r, optarg, optind in getopt(arg, 'hc:n:o:b:') do
 	elseif r == 'c' then
 		config.clustduct["confdir"] = optarg
 	elseif r == 'b' then
-		base = optarg
+		config.clustduct["base"] = optarg
 	elseif r == 'o' then
 		config.clustduct["outdir"] = optarg
 		config.clustduct["tftpdir"] = optarg
 	elseif r == 'n' then
 		node = optarg
 	end
-	config.clustduct["base"] = base
 end
 
 local nodes = handle:query("ip")

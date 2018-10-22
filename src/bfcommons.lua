@@ -192,6 +192,7 @@ function create_grub_node_file(node,handle,config)
 end
 
 function create_pxe_structure(handle,config)
+	if config.clustduct["base"] == nil then config.clustduct["base"] = 10 end
 	local incrementcount=0
 	local nodes = handle:query("ip")
 	-- nr_nodes=$(nodeattr -f $GENDERSFILE -n ip | wc -l)
@@ -253,6 +254,7 @@ function create_pxe_structure(handle,config)
 end
 
 function create_grub_structure(handle,config)
+	if config.clustduct["base"] == nil then config.clustduct["base"] = 10 end
 	local incrementcount=0
 	local nodes = handle:query("ip")
 	-- nr_nodes=$(nodeattr -f $GENDERSFILE -n ip | wc -l)

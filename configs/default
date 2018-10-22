@@ -8,7 +8,7 @@ ONTIMEOUT Reboot
 LABEL ClustDuct
         MENU LABEL Boot as node ...
         KERNEL menu.c32
-        APPEND clustduct/clustduct-nodes
+        APPEND clustduct/menu.grub
 
 LABEL Reboot
         MENU LABEL Reboot node
