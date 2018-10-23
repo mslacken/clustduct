@@ -558,7 +558,7 @@ tftp-no-blocksize
 # The arguments sent to the script are "add" or "del",
 # then the MAC address, the IP address and finally the hostname
 # if there is one.
-dhcp-luascript=/root/clustduct/clustduct.lua
+dhcp-luascript=/usr/sbin/clustduct.lua
 
 # Set the cachesize here.
 #cache-size=150

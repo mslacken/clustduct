@@ -14,17 +14,19 @@ if config.clustduct["netclass"] == nil then config.clustduct["netclass"] = "01" 
 local handle = g_db.new(config.clustduct["genders"])
 -- variables
 local node = nil
+local force = false
 
 -- parse commandline
 getopt = require 'posix.unistd'.getopt
-for r, optarg, optind in getopt(arg, 'hc:n:o:b:') do
+for r, optarg, optind in getopt(arg, 'hfc:n:o:b:') do
 	if r == '?' then
 		return print('unrecognized option', arg[optind -1])
 	end
 	if r == 'h' then
-		print '-n      create config only for given and not all nodes'
 		print '-h      print this help text'
-		print '-o      overwrite output dir'
+		print '-f      overwrite existing config files'
+		print '-n NODE create config only for given and not all nodes'
+		print '-o ARG  overwrite output dir'
 		print '-c ARG  overwrite confdir'
 		return 0
 	elseif r == 'c' then
@@ -36,7 +38,10 @@ for r, optarg, optind in getopt(arg, 'hc:n:o:b:') do
 		config.clustduct["tftpdir"] = optarg
 	elseif r == 'n' then
 		node = optarg
+	elseif r == 'f' then
+		force = true
 	end
+	config.clustduct['overwrite'] = force
 end
 
 local nodes = handle:query("ip")
