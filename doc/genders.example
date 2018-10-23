@@ -9,27 +9,30 @@
 # accepts ranges of nodenames in the general form: prefix[n-m,l-k,...], 
 # where n < m and l < k, etc., as an alternative to explicit lists of nodenames.
 #
-# Following is a sample genders configuration setup
+# Example file for clustduct with ten nodes and a entry to boot the nodes
+# from the local disk
+# 
+# example for kiwi generated install entry
 #
-## slc[0-1,8-9] ditty=0
-## slc[8-15]    type=es40,es40
-## slc[0-15]    crash,cluster=test,all,elan,eip
-## slc[0-5]     type=up2000,up2000
-## slc[6-7]     type=cs20,cs20
-## slc10        ditty=10
-## slc11        ditty=11
-## slc12        ditty=12
-## slc13        ditty=13
-## slc14        ditty=14
-## slc15        ditty=15
-## slc0         passwdhost
-## slc1         wti=/dev/ttyD23:0
-## slc2         wti=/dev/ttyD23:1,ditty=2
-## slc3         wti=/dev/ttyD23:2,ditty=3
-## slc4         wti=/dev/ttyD23:3,ditty=4
-## slc5         wti=/dev/ttyD23:4,ditty=5
-## slc6         mac0=00:02:56:00:05:F2,ditty=6
-## slc7         ditty=7,mac0=00:02:56:00:03:49
-test-node-01 ip=192.168.100.11
-test-node-02 ip=192.168.100.12
-test-node-03 ip=192.168.100.13
+JeOS15     initrd=/leap15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/leap15/LimeJeOS-Leap-15.0.xz,kernel=/leap15/LimeJeOS-Leap-15.0.kernel,nextboot=local,trigger=LimeJeOS-Leap-15.0.xz
+#
+# local boot entry
+#
+local menu=label\wsboot\wsfrom\wslocal\wsdisk,com32=chain.c32,mandatory,grub=configfile\ws(hd0\cogpt3)/boot/grub2/grub.cfg
+#
+# node entries
+#
+compute-01 ip=192.168.100.11
+compute-02 ip=192.168.100.12
+compute-03 ip=192.168.100.13
+compute-04 ip=192.168.100.14
+compute-05 ip=192.168.100.15
+compute-06 ip=192.168.100.16
+compute-07 ip=192.168.100.17
+compute-08 ip=192.168.100.18
+compute-09 ip=192.168.100.19
+compute-10 ip=192.168.100.20
+#
+# install the kiwi image on all the nodes
+#
+compute-[01-10] install=JeOS15
