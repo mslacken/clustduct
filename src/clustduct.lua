@@ -157,7 +157,11 @@ function lease(action,args)
 			if #node >= 1 then 
 				print("add node with mac "..args["mac_address"].." as "..node[1])
 				local node_attr = handle:getattr(node[1])
-				update_db(node[1],"mac="..args["mac_address"])
+				if node_attr["mac"] == nil then 
+					update_db(node[1],"mac="..args["mac_address"])
+				else
+					print("WARNING: mac="..mac.." is allreay in database")
+				end
 				-- reload handle
 				handle:reload(config.clustduct["genders"])
 				local node_names = node[1]
@@ -204,7 +208,6 @@ function tftp(action,args)
 			-- just update the mac in genders, the rest will be handled by old
 			-- and check if mac is in the database
 			local genders_mac = handle:query("mac="..mac)
-			tprint(genders_mac)
 			if genders_mac == nil or #genders_mac == 0 then
 				update_db(nodefromfile,"mac="..mac)
 				handle:reload(config.clustduct["genders"])
