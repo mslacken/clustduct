@@ -22,12 +22,13 @@
     </preferences>
     <preferences>
         <type image="vmx" filesystem="ext4" bootloader="grub2" kernelcmdline="splash" firmware="efi"/>
-        <type image="oem" filesystem="ext4" initrd_system="dracut" installiso="true" bootloader="grub2" kernelcmdline="splash" firmware="efi">
+        <type image="oem" filesystem="ext4" initrd_system="dracut" installpxe="true" bootloader="grub2" kernelcmdline="splash" firmware="efi">
             <oemconfig>
                 <oem-systemsize>2048</oem-systemsize>
                 <oem-swap>true</oem-swap>
                 <oem-device-filter>/dev/ram</oem-device-filter>
                 <oem-multipath-scan>false</oem-multipath-scan>
+		<oem-unattended>true</oem-unattended>
             </oemconfig>
             <machine memory="512" guestOS="suse" HWversion="4">
                 <vmdisk id="0" controller="ide"/>
@@ -69,6 +70,7 @@
         <package name="bash-completion"/>
         <package name="dhcp-client"/>
         <package name="which"/>
+	<package name="salt-minion"/>
         <package name="shim"/>
         <package name="kernel-default"/>
         <package name="timezone"/>

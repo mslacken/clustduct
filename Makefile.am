@@ -20,12 +20,23 @@ tftp_DATA = configs/default
 efidir = $(prefix)/../srv/tftpboot/EFI/x86
 efi_DATA = configs/grub.cfg
 
-kiwidir = $(docdir)/kiwi-descriptions
-kiwi_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/Dicefile \
+kiwibasedir = $(docdir)/kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS
+kiwibase_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/Dicefile \
             kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/config.sh \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/config.xml \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/motd \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service
+            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/config.xml 
+
+kiwirootdir = $(kiwibasedir)/root
+kiwiroot_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger 
+
+kiwietcdir = $(kiwirootdir)/etc
+kiwietc_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/motd 
+
+kiwinetdir = $(kiwietcdir)/sysconfig/network
+kiwinet_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
+            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/dhcp 
+
+kiwiudevdir = $(kiwietcdir)/udev/rules.d/
+kiwiudev_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules 
+
+kiwisystemdir = $(kiwirootdir)/usr/lib/systemd/system/
+kiwisystem_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service
