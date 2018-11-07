@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-sbin_SCRIPTS = src/clustduct.lua src/write_bf.lua
+sbin_SCRIPTS = src/clustduct.lua src/write_bf.lua src/prepare_tftp.sh
 
 luaexec_SCRIPTS = src/bfcommons.lua
 
