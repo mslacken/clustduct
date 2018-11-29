@@ -1,3 +1,4 @@
+#!/usr/bin/lua
 -- simple print function for tables
 function tprint (t, s)
     for k, v in pairs(t) do

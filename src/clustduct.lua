@@ -1,3 +1,4 @@
+#!/usr/bin/lua
 -- handle must be global
 handle = nil
 cnf_filename = "/etc/clustduct.conf"
