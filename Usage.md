@@ -1,13 +1,13 @@
 # Bare metal deployment with dnsmasq and kiwi
-Currently it is not possible to deploy the HPC nodes on bare metal via any tools. This document provides initial thoughts and describes the necessary tools and steps.
+Currently it is not possible to deploy the openSUSE/SUSE HPC product on bare metal without a third party tool. `clustduct` provides this possibility.
 
 ## Used software
 For the bare metal provisioning, we need the following software packages:
 
-   * **dnsmasq** in for dhpc, dns and tftp managment
+   * **dnsmasq** in for dhpc, dns and tftp management
    * **kiwi-ng** for creating stateful (installation on disk) and stateless installs
    * **genders** as central database tool and format
-   * **syslinux** providing the necessary pxe boot infratsructure
+   * **syslinux** providing the necessary pxe boot infrastructure
    * **clustduct** which connects dnsmasq with genders
 
 Additional purpose beyond bare metal provision may depend on following packages:
@@ -42,8 +42,8 @@ aa-disable /etc/apparmor.d/usr.sbin.dnsmasq
 ##### Note
 Disabling the **apparmor** profile introduces some security issues, which we are ignoring at the moment.
 
-### Software installation with prepackaged clustduct
-In the first step the repo of clustuct is added and the package is installed
+### Software installation with prepackaged `clustduct`
+In the first step the repository of clustuct is added and the package is installed
 ```
 zypper ar \
 https://download.opensuse.org/repositories/home:/mslacken:/prov/\
@@ -52,7 +52,7 @@ zypper ref
 zypper in clustduct
 ```
 ### Dnsmasq configuration
-In the dnsmasq configuration file */etc/dnsmasq.conf*, the following options have to be changed:
+In the dnsmasq configuration file `/etc/dnsmasq.conf`, the following options have to be changed:
 
   * the local domain:
 ```
@@ -71,11 +71,11 @@ tftp-root=/srv/tftpboot/
 ```
 dhcp-boot=pxelinux.0
 ```
-  * connect dnsmasq the genders database via clustduct
+  * connect dnsmasq the genders database via `clustduct`
 ```
 dhcp-script=/usr/sbin/clustduct.sh
 ```
-  * enable mac managenemnt
+  * enable mac management
 ```
 read-ethers
 ```
@@ -93,7 +93,7 @@ dhcp-option=option:router,192.168.100.1
 
 
 ### Genders databases configuration for the nodes
-Now the cluster nodes have to be defined by creating a genders database for them. The genders database, a flat file in */etc/genders*, must contain for every node a new line wth the *ip*-attribute which will be used as ip address for the compute node. If the mac addresses of the hosts are known they could also be added now if not they can be set on the pxe boot menu or will be added on the node boot up.
+Now the cluster nodes have to be defined by creating a genders database for them. The genders database, a flat file in `/etc/genders`, must contain for every node a new line with the *ip*-attribute which will be used as ip address for the compute node. If the mac addresses of the hosts are known they could also be added now if not they can be set on the pxe boot menu or will be added on the node boot up.
 ```
 compute-01 ip=192.168.100.11
 compute-02 ip=192.168.100.12
@@ -103,7 +103,7 @@ A basic database can be created with the command
 ```
 for i in $(seq 1 20); do echo "compute-$(printf %02g $i) ip=192.168.100.$(($i+10))"; done > /etc/genders
 ```
-For booting the node ther must also be entries in the genders database. Boot from local disk can allowed by adding following entry to */etc/genders*
+For booting the node there must also be entries in the genders database. Boot from local disk can allowed by adding following entry to `/etc/genders`
 ```
 local menu=label\wsboot\wsfrom\wslocal\wsdisk,com32=chain.c32,append=hd0,mandatoryentry
 
@@ -133,7 +133,7 @@ For the creation of boot images, do the following
 ```
 git clone https://github.com/SUSE/kiwi-descriptions
 ```
-which are the descriptions for creating the node images. Second, archive the clustduct script which provides the connection between the **genders** database and **dnsmasq** is needed.
+which are the descriptions for creating the node images. Second, archive the `clustduct` script which provides the connection between the **genders** database and **dnsmasq** is needed.
 ```
 git clone https://github.com/mslacken/clustduct.git
 ```
@@ -189,7 +189,7 @@ To send the images to the nodes, the right location must created with
 ```
 mkdir -p /srv/tftpboot/leap15/
 ```
-now extract image to the direcotry with
+now extract image to the directory with
 ```
 cd /srv/tftpboot/leap15/
 tar xJf /tmp/packed_image/LimeJeOS-Leap-15.0.x86_64-1.15.0.install.tar.xz
@@ -285,14 +285,14 @@ genders:
       - require:
         - pkg: genders
 ```
-and the defintion for the node as *srv/salt/top.sls*
+and the definition for the node as *srv/salt/top.sls*
 ```
 base:
   'compute-[0-2][0-9].cluster.suse':
     - compute-node
 
 ```
-we also have to create the config files for *lus-lmod* with
+we also have to create the configuration files for *lua-lmod* with
 ```
 mkdir /srv/salt/shared_module
 cp /etc/profile.d/lmod* /srv/salt/shared_module
