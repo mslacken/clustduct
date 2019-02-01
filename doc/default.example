@@ -1,19 +1,19 @@
 DEFAULT menu
 PROMPT 0
-MENU TITLE Hombrew pxe boot
+MENU TITLE Boomenut for clustduct deployment
 TIMEOUT 600
 TOTALTIMEOUT 6000
-ONTIMEOUT JeOS
+ONTIMEOUT Clustduct
+
+LABEL Clustduct
+        MENU LABEL Clustduct cluster deployment
+        MENU DEFAULT
+	KERNEL menu.c32
+	APPEND /srv/tftpboot/clustduct/menu.pxe
 
 LABEL local
         MENU LABEL (local)
-        MENU DEFAULT
         COM32 chain.c32
         APPEND hd0
 
-LABEL JeOS
-        kernel /image/LimeJeOS-Leap-15.0.kernel
-        MENU LABEL liveJeOS15.0
-        append initrd=/boot/initrd rd.kiwi.install.pxe \
-        rd.kiwi.install.image=tftp://192.168.100.253/image/LimeJeOS-Leap-15.0.xz
 
