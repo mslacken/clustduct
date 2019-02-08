@@ -1,15 +1,15 @@
 # clustduct reference
 
-The deployment tool `clustduct` connects the `genders` database to the `dnsmasq` service. During initialization the files `/etc/ethers` and `/etc/hosts` are populated by the node entries from the genders database.
+The deployment tool `clustduct` connects the `genders` database to the `dnsmasq` service. During initialization the files `/etc/ethers` and `/etc/hosts` are populated by `node` entries from the genders database. `clustduct` also monitors *tftp* file transfers and can so be used to deploy prebuilt images to `compute nodes`.
 
 ## components of `clustduct`
-The central component is the script 
+The central component of `clustduct` is the script 
 `/usr/sbin/clustduct.lua`
-and is called directly by `dnsmasq` at every dhcp and tftp activity of dnsmasq.
+and is called directly by `dnsmasq` at every dhcp and tftp activity of `dnsmasq`.
 
 Two scrips are used to create and maintain the directory and file structure for booting and installing the `compute nodes`. In order to copy the files from the `syslinux` package the shell script
 ```
-/usr/sbin/write_bf.lua
+/usr/sbin/prepare_tftp.sh
 ```
 can be used. For the creation of the files used for `grub` or PXE the `lua` script
 ```
@@ -28,19 +28,20 @@ option | description
 The script 
 ```
 /usr/sbin/clustduc.lua
-```can be configured with the file
+```
+can be configured with the file
 ```
 /etc/clustduct.conf
 ```
 which is not parsed, but is itself a `lua` table. Following values can be used
 
-option | description
--------|--------------------------------------------------
-ethers | file location of the ethers files, default is `/etc/ethers`
-hosts | file location of the hosts files, default is `/etc/hosts`
-genders |file location of the genders database, default is `/etc/genders` 
-domain | domain to which the nodes are expanded, *,ust* the same as in `/etc/dnsmasq.conf`
-linear_add | if *true*, new mac addresses will deployed as compute nodes, if *false*
+option  | description
+--------|--------------------------------------------------
+ethers | location of the ethers files, default is `/etc/ethers`
+hosts | location of the hosts files, default is `/etc/hosts`
+genders |location of the genders database, default is `/etc/genders` 
+domain | domain to which the nodes are expanded, *must* be the same as in `/etc/dnsmasq.conf`
+linear_add | if *true*, nodes with unknown `mac` addresses will be added to the `genders` database
 confdir | the directory where clustduct searches for template files, `/etc/clustduct.d/` is used as default
 
 ## template files
@@ -78,8 +79,6 @@ compute-03 ip=192.168.100.13
 compute-03 mac=aa:bb:cc:dd:ee:ff
 ```
 
-As `genders` does not allow white spaces and other special characters, so following translation table is used
-
 ### special node entries
 
 value | description
@@ -92,6 +91,8 @@ boot | image entry for boot, takes precedence over install entry
 
 ### special characters
 
+As `genders` does not allow white spaces and other special characters, so following translation table is used
+
 character | character description | value in `genders`
 ----------|-----------------------|-------------------
 ' ' | whitespace | \\ws
@@ -99,7 +100,7 @@ character | character description | value in `genders`
 
 ### image and boot entries
 
-If an IDENTIFICATION in the `genders` datanase has KEY called 'menu' it is interpreted as a boot entry for `grub` called from (U)EFI and/or pxe network boot. Following values used for the boot entries are common for PXE and `grub`. All values which are not listed below will be ignored.
+If an IDENTIFICATION in the `genders` database has KEY called 'menu' it is interpreted as a boot entry for `grub` called from (U)EFI and/or pxe network boot. Following values used for the boot entries are common for PXE and `grub`. All values which are not listed below will be ignored.
 
 value | description
 ------|--------------------------------------------------
