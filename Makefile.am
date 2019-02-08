@@ -20,23 +20,23 @@ clustductdoc_DATA = doc/* Usage.md Readme.md COPYING Bugs.md configs/default con
 #efidir = $(prefix)/../srv/tftpboot/EFI/x86
 #efi_DATA = configs/grub.cfg
 
-kiwibasedir = $(docdir)/kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS
-kiwibase_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/Dicefile \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/config.sh \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/config.xml 
+kiwibasedir = $(docdir)/kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS
+kiwibase_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/Dicefile \
+            kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/config.sh \
+            kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/config.xml 
 
 kiwirootdir = $(kiwibasedir)/root
-kiwiroot_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger 
+kiwiroot_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger 
 
 kiwietcdir = $(kiwirootdir)/etc
-kiwietc_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/motd 
+kiwietc_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/motd 
 
 kiwinetdir = $(kiwietcdir)/sysconfig/network
-kiwinet_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
-            kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/dhcp 
+kiwinet_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
+            kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/dhcp 
 
 kiwiudevdir = $(kiwietcdir)/udev/rules.d/
-kiwiudev_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules 
+kiwiudev_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules 
 
 kiwisystemdir = $(kiwirootdir)/usr/lib/systemd/system/
-kiwisystem_DATA = kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service
+kiwisystem_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service
