@@ -97,6 +97,7 @@
         <package name="timezone"/>
 	<package name="SLE_HPC-release"/>
 	<package name="SUSEConnect"/>
+	<package name="suse-build-key"/>
 	<!--
 	<package name="sle-module-basesystem-release"/>
 	-->

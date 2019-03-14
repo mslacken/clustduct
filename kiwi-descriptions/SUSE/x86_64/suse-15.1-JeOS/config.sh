@@ -45,6 +45,7 @@ suseImportBuildKey
 # Activate services
 #--------------------------------------
 suseInsertService sshd
+suseInsertService RegisterFirst
 if [[ ${kiwi_type} =~ oem|vmx ]];then
     suseInsertService grub_config
 else
