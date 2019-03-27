@@ -40,30 +40,17 @@
         </type>
     </preferences>
     <users>
+	<!-- password is linux -->
         <user password="$1$wYJUgpM5$RXMMeASDc035eX.NbYWFl0" home="/root" name="root" groups="root"/>
     </users>
     <repository type="rpm-md" alias="kiwi" priority="1">
         <source path="obs://Virtualization:Appliances:Builder/SLE_15"/>
     </repository>
-    <!--
-    <repository type="rpm-md" alias="SLES_15_1" imageinclude="true">
-    -->
-	    <!--
-    <repository type="rpm-md" alias="SLES_15_1">
-	    <source path="http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA/standard/"/>
-    </repository>
-    <repository type="rpm-md" alias="SLES_15_1_module-Basesystem">
-	    <source path="http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Basesystem-POOL-x86_64-Media1/"/>
-    </repository>
-    <repository type="rpm-md" alias="SLES_15_1_module-HPC">
-	    <source path="http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-HPC-POOL-x86_64-Media1/"/>
-    </repository>
-          -->
     <repository type="yast2" alias="SLES_installer">
-	    <source path="iso:// /root/SLE-15-SP1-Installer-DVD-x86_64-Build188.1-Media1.iso"/>
+	    <source path="iso:// /root/SLE-15-SP1-Installer-DVD-x86_64-GA-Media1.iso"/>
     </repository>
     <repository type="yast2" alias="SLES_packages">
-	    <source path="iso:// /root/SLE-15-Packages-x86_64-Build668.1-Media1.iso"/>
+	    <source path="iso:// /root/SLE-15-Packages-x86_64-GA-Media1.iso"/>
     </repository>
 
     <packages type="image">
