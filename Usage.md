@@ -28,15 +28,28 @@ Following services must be **disabled**
   * firewall
   * apparmor
 
-Following services must be **enabled**
+Following packages must be installed:
 
-  * sshd 
+  * python3-kiwi
+  * tftp.socket
+
+Following services must be **enabled** and **running**
+
+  * sshd
+  * tftp
+
+Following service must be **enabled**
+
+  * dnsmasq
+
+Furthermore, set up a static IP address.
+
   * static ip address
 
 
 NOTE: Disable apparmor
 
-In some profiles, `apparmor` is installed and has a preconfigured profile for `dnsmasq`. It must be disabled which can be done in two ways. 
+In some profiles, `apparmor` is installed and has a preconfigured profile for `dnsmasq`. It must be disabled which can be done in two ways.
 
    * The profile for `dnsmasq` can be disabled with
 ```
@@ -54,13 +67,13 @@ WARNING: Disabling the `apparmor` profile introduces security issues which can b
 ## Dnsmasq configuration
 The package *clustduct* contains also an example configuration for *dnsmasq* in `/usr/share/doc/clustduct/dnsmasq.example` which has following differences to shipped *dnsmasq* configuration:
 
-  * local domain
+  * local domain (modify to your needs)
 ```
 local=/cluster.suse/
 ```
   * dynamic range
 ```
-dhcp-range=192.168.100.50,192.168.100.60,12h
+dhcp-range=192.168.100.50,192.168.100.60,12h (modify to your needs)
 ```
   * tftp enabled and deployment directory
 ```
@@ -71,7 +84,7 @@ tftp-root=/srv/tftpboot/
 ```
 dhcp-boot=pxelinux.0
 ```
-  * *clustduct* script 
+  * *clustduct* script
 ```
 dhcp-script=/usr/sbin/clustduct.sh
 ```
@@ -86,8 +99,10 @@ group=root
 ```
   * *gateway* for the *cluster network*
 ```
-dhcp-option=option:router,192.168.100.1
+dhcp-option=option:router,192.168.100.1 (modify to your needs)
 ```
+
+Once dnsmasq has been configured, it may be (re)started.
 
 ## `genders` databases for the node configuration
 The genders database connects the *mac* addresses of the *compute nodes* with the *ip* address and the corresponding FQDN . A flat file in `/etc/genders` is used as database. If the mac addresses of the hosts are known they could also be added before the node installation, if not they can be set during the boot process or, depending on the configuration, will be added in linear manner.
@@ -104,15 +119,16 @@ Descriptions for creating images can be found under the directory
 ```
 The install image is prepared with
 ```
+cd /usr/share/doc/clustduct
 kiwi-ng --type oem system prepare\
---description kiwi-descriptions/suse/x86\_64/suse-leap-15.0-JeOS \
+--description kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS \
 --root /tmp/leap15_oem_pxe
 ```
 Now the root file system for the new nodes is available under `/tmp/leap15_oem_pxe` and simple modifications can be made to it, but they will be lost if a new system is created via the `kiwi-ng system prepare` command. To install the *compute nodes* the image has to be packed. This is done with the commands:
 ```
-mkdir /tmp/packed_leap15
+mkdir /tmp/packed_image
 kiwi-ng --type=oem system create --root=/tmp/leap15_oem_pxe  \
---target-dir=/tmp/packed_leap15
+--target-dir=/tmp/packed_image
 ```
 
 ## Preparing the *tftboot* directory
