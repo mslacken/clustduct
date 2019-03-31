@@ -10,7 +10,7 @@ local config = {}
 -- but checks if string is present in file
 -- also the variable need_signal is set to true if the file is modified
 
-function update_file(first_arg,second_arg,filename) 
+function update_file(first_arg,second_arg,filename)
 	-- print("clustduct: will manipulate file "..config.clustduct["ethers"])
 	local file, err = io.open(filename,"r")
 	if not file then error(err) end
@@ -61,7 +61,7 @@ function allowfromhost(node)
 	local node_attrs = handle:getattr(node)
 	-- should not happen but be sure
 	if node_attrs == nil then return false end
-	if node_attrs["block"] then 
+	if node_attrs["block"] then
 		return false
 	else
 		return true
@@ -103,17 +103,17 @@ function init()
 			node_names = node.."."..config.clustduct["domain"].." "..node
 		end
 		update_file(node_attrs["ip"],node_names,config.clustduct["hosts"])
-	end	
+	end
 	send_signal()
 	if config.clustduct["linear_add"] then print("clustduct: will add nodes linear") else print("clustduct: do nothing with new nodes") end
 	print("clustduct: end init")
 end
 
-function shutdown() 
+function shutdown()
 	print("clustduct: shutdown was called")
 end
 
-function lease(action,args) 
+function lease(action,args)
 	print("clustduct: lease was called with action "..action)
 	if action == "old" then
 		print("clustduct: in old tree")
@@ -155,10 +155,10 @@ function lease(action,args)
 		elseif config.clustduct["linear_add"] then
 			-- add the new node to genders, update ethers/hosts
 			local node = handle:query("~mac&&ip")
-			if #node >= 1 then 
+			if #node >= 1 then
 				print("clustduct: add node with mac "..args["mac_address"].." as "..node[1])
 				local node_attr = handle:getattr(node[1])
-				if node_attr["mac"] == nil then 
+				if node_attr["mac"] == nil then
 					update_db(node[1],"mac="..args["mac_address"])
 				else
 					print("clustduct: WARNING: mac="..mac.." is already in database")
@@ -171,9 +171,9 @@ function lease(action,args)
 				end
 				update_file(node_attr["ip"],node_names,config.clustduct["hosts"])
 				update_file(args["mac_address"],node_attr["ip"],config.clustduct["ethers"])
-				create_pxe_node_file(node[1],handle,config) 
-				create_grub_node_file(node[1],handle,config) 
-				-- hosts/ethers is reread after signal is sned
+				create_pxe_node_file(node[1],handle,config)
+				create_grub_node_file(node[1],handle,config)
+				-- hosts/ethers is reread after signal is send
 				send_signal()
 			else
 				print("clustduct: WARNING: node count: "..#node)
