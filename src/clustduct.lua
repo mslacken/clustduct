@@ -11,7 +11,7 @@ local config = {}
 -- also the variable need_signal is set to true if the file is modified
 
 function update_file(first_arg,second_arg,filename) 
-	-- print("will manipulate file "..config.clustduct["ethers"])
+	-- print("clustduct: will manipulate file "..config.clustduct["ethers"])
 	local file, err = io.open(filename,"r")
 	if not file then error(err) end
 	local file_content = file:read("*a")
@@ -29,10 +29,10 @@ function update_file(first_arg,second_arg,filename)
 	local second_pos = string.find(file_content,"%g+%s+"..sf_arg)
 	if first_pos then
 		file_content = string.gsub(file_content,ff_arg.."[%g%s]+\n","")
-		-- print("found ip, content is now [snip]\n"..file_content.."\n[snap]")
+		-- print("clustduct: found ip, content is now [snip]\n"..file_content.."\n[snap]")
 	elseif second_pos then
 		file_content = string.gsub(file_content,"%g+%s+"..sf_arg,"")
-		-- print("found mac, content is now [snip]\n"..file_content.."\n[snap]")
+		-- print("clustduct: found mac, content is now [snip]\n"..file_content.."\n[snap]")
 	end
 	file = io.open(filename,"w")
 	file_content=file_content..first_arg.." "..second_arg.."\n"
@@ -51,7 +51,7 @@ end
 
 function send_signal()
 	if need_signal then
-		-- print("sending SIGHUP to dnsmasq")
+		-- print("clustduct: sending SIGHUP to dnsmasq")
 		os.execute("pkill --signal SIGHUP dnsmasq")
 		need_signal = false
 	end
@@ -73,15 +73,15 @@ end
 function init() 
 	g_db = require("genders")
 	require("bfcommons")
-	print("init was called")
+	print("clustduct: init was called")
 	local cnf_file,err = loadfile(cnf_filename,"t",config)
 	-- initialize with defaults
 	if cnf_file then
-		print("found config file "..cnf_filename)
+		print("clustduct: found config file "..cnf_filename)
 		cnf_file()
 	else
 		-- no config file found
-		print(err)
+		print("clustduct: "..err)
 	end
 	if config["clustduct"] == nil then config["clustduct"] = {} end
 	if config.clustduct["ethers"] == nil then config.clustduct["ethers"]="/etc/ethers" end
@@ -93,7 +93,7 @@ function init()
 	if config.clustduct["tftpdir"]  == nil then config.clustduct["tftpdir"] = "/srv/tftpboot" end
 	if config.clustduct["netclass"]  == nil then config.clustduct["netclass"] = "01" end
 	handle = g_db.new(config.clustduct["genders"])
-	print("opened genders database "..config.clustduct["genders"].." with "..#handle:getnodes().." nodes")
+	print("clustduct: opened genders database "..config.clustduct["genders"].." with "..#handle:getnodes().." nodes")
 	-- will update hosts file now
 	nodes = handle:query("ip")
 	for index,node in pairs(nodes) do
@@ -105,23 +105,23 @@ function init()
 		update_file(node_attrs["ip"],node_names,config.clustduct["hosts"])
 	end	
 	send_signal()
-	if config.clustduct["linear_add"] then print("will add nodes linear") else print("do nothing with new nodes") end
-	print("end init")
+	if config.clustduct["linear_add"] then print("clustduct: will add nodes linear") else print("clustduct: do nothing with new nodes") end
+	print("clustduct: end init")
 end
 
 function shutdown() 
-	print("shutdown was called")
+	print("clustduct: shutdown was called")
 end
 
 function lease(action,args) 
-	print("lease was called with action "..action)
+	print("clustduct: lease was called with action "..action)
 	if action == "old" then
-		print("in old tree")
+		print("clustduct: in old tree")
 		local node=handle:query("mac="..args["mac_address"])
 		if node~= nil and #node == 1 then
 			-- found node in genders, update ethers/hosts
 			local node_attrs = handle:getattr(node[1])
-			print("found node "..node[1].." with mac="..args["mac_address"].." updating hosts and ethers")
+			print("clustduct: found node "..node[1].." with mac="..args["mac_address"].." updating hosts and ethers")
 			local node_names = node[1]
 			if config.clustduct["domain"] then
 				node_names = node[1].."."..config.clustduct["domain"].." "..node[1]
@@ -134,16 +134,16 @@ function lease(action,args)
 			-- hosts/ethers is reread after signal is sned
 			send_signal()
 		else
-			print("node with mac "..args["mac_address"].." is not known to genders")
+			print("clustduct: node with mac "..args["mac_address"].." is not known to genders")
 		end
 	elseif action == "add" then
-		print("in add tree")
+		print("clustduct: in add tree")
 		-- query genders for mac
 		local node = handle:query("mac="..args["mac_address"])
 		if node~= nil and #node == 1 then
 			-- found node in genders, update ethers/hosts
 			local node_attrs = handle:getattr(node[1])
-			print("found node "..node[1].." with mac="..args["mac_address"].." updating hosts and ethers")
+			print("clustduct: found node "..node[1].." with mac="..args["mac_address"].." updating hosts and ethers")
 			local node_names = node[1]
 			if config.clustduct["domain"] then
 				node_names = node[1].."."..config.clustduct["domain"].." "..node[1]
@@ -156,12 +156,12 @@ function lease(action,args)
 			-- add the new node to genders, update ethers/hosts
 			local node = handle:query("~mac&&ip")
 			if #node >= 1 then 
-				print("add node with mac "..args["mac_address"].." as "..node[1])
+				print("clustduct: add node with mac "..args["mac_address"].." as "..node[1])
 				local node_attr = handle:getattr(node[1])
 				if node_attr["mac"] == nil then 
 					update_db(node[1],"mac="..args["mac_address"])
 				else
-					print("WARNING: mac="..mac.." is allreay in database")
+					print("clustduct: WARNING: mac="..mac.." is already in database")
 				end
 				-- reload handle
 				handle:reload(config.clustduct["genders"])
@@ -175,29 +175,33 @@ function lease(action,args)
 				create_grub_node_file(node[1],handle,config) 
 				-- hosts/ethers is reread after signal is sned
 				send_signal()
+			else
+				print("clustduct: WARNING: node count: "..#node)
 			end
+		else
+			print("clustduct: not adding unknown node")
 		end
 
 	elseif action == "del" then
-		print("in del, but do not care about vanished leases")
+		print("clustduct: in del, but do not care about vanished leases")
 	else
-		print("unknown action "..action.." doing nothing")
+		print("clustduct: unknown action "..action.." doing nothing")
 	end
 end
 
 function tftp(action,args)
-	print("tftp was called with "..action)
+	print("clustduct: tftp was called with "..action)
 	-- check if node specific config was selected, which may called from other ip
 	-- we can always return as installation is always done with node specific file
 	local nodefromfile = string.match(args["file_name"],"%g+/clustduct_node%.(%g+)%.%g+")
 	if nodefromfile == nil then return end
-	print("This is node "..nodefromfile)
+	print("clustduct: This is node "..nodefromfile)
 	-- check for valid nodename
 	if not handle:isnode(nodefromfile) then return end
 	-- check if ip is in database
 	local node = handle:query("ip="..args["destination_address"])
 	if node == nil or node ~= nodefromfile then
-		print("Will set ip="..args["destination_address"].." to "..nodefromfile)
+		print("clustduct: Will set ip="..args["destination_address"].." to "..nodefromfile)
 		if not allowfromhost(nodefromfile) then return end
 		-- read adress from the arp table
 		local shellhandle = io.popen("ip neigh show "..args["destination_address"])
@@ -214,7 +218,7 @@ function tftp(action,args)
 				handle:reload(config.clustduct["genders"])
 				send_signal()
 			else
-				print("WARNING: mac="..mac.." is allreay in database")
+				print("clustduct: WARNING: mac="..mac.." is allreay in database")
 			end
 		end
 	end
@@ -239,7 +243,7 @@ function tftp(action,args)
 		if args["file_name"] ~= nil then
 			local ftrigger = string.gsub(install_attr["trigger"],"(%W)","%%%1")
 			if string.find(args["file_name"],"%g*"..ftrigger.."%g*") and install_attr["nextboot"] ~= nil then
-				print("trigger "..install_attr["trigger"].." setting "..node[1].." boot="..install_attr["nextboot"])
+				print("clustduct: trigger "..install_attr["trigger"].." setting "..node[1].." boot="..install_attr["nextboot"])
 				update_db(node[1],"boot="..install_attr["nextboot"])
 			end
 		end
