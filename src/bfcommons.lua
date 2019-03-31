@@ -82,6 +82,7 @@ function create_pxe_node_file(node,handle,config)
 			error(err)
 		end
 		ofile:write(pxe_template)
+		ofile:close()
 	end
 	if node_args["mac"] ~= nil then 
 		local mac_filename = config.clustduct["tftpdir"].."/"
@@ -95,6 +96,7 @@ function create_pxe_node_file(node,handle,config)
 				error(err)
 			end
 			ofile:write(mac_file_out)
+			ofile:close()
 		end
 	end
 end
@@ -166,6 +168,7 @@ function create_grub_node_file(node,handle,config)
 			error(err)
 		end
 		ofile:write(grub_template)
+		ofile:close()
 	end
 	local ip_filename = config.clustduct["outdir"].."/"
 	ip_filename = string.gsub(ip_filename,"//","/")
@@ -177,6 +180,7 @@ function create_grub_node_file(node,handle,config)
 			error(err)
 		end
 		ofile:write(ip_file_out)
+		ofile:close()
 	end
 	if node_args["mac"] ~= nil then 
 		local mac_filename = config.clustduct["tftpdir"].."/"
@@ -189,6 +193,7 @@ function create_grub_node_file(node,handle,config)
 				error(err)
 			end
 			ofile:write(mac_file_out)
+			ofile:close()
 		end
 	end
 
@@ -255,6 +260,7 @@ function create_pxe_structure(handle,config)
 			error(err)
 		end
 		ofile:write(output_str)
+		ofile:close()
 	end
 
 end
@@ -303,6 +309,7 @@ function create_grub_structure(handle,config)
 					error(err)
 				end
 				ofile:write(output_str)
+				ofile:close()
 			end
 			counter = 1
 		end
@@ -317,6 +324,7 @@ function create_grub_structure(handle,config)
 			error(err)
 		end
 		ofile:write(menu_str)
+		ofile:close()
 	end
 	-- output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tKERNEL menu.c32\n\tAPPEND ~\n"
 
