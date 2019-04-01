@@ -72,7 +72,9 @@
         <package name="openssh"/>
         <package name="iproute2"/>
         <package name="less"/>
+	<package name="lvm2"/>
 	<package name="psmisc"/>
+	<package name="parted"/>
         <package name="bash-completion"/>
         <package name="dhcp-client"/>
         <package name="which"/>

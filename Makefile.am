@@ -20,23 +20,45 @@ clustductdoc_DATA = doc/* Usage.md Readme.md COPYING Bugs.md configs/default con
 #efidir = $(prefix)/../srv/tftpboot/EFI/x86
 #efi_DATA = configs/grub.cfg
 
-kiwibasedir = $(docdir)/kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS
-kiwibase_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/Dicefile \
+kiwiopensusebasedir = $(docdir)/kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS \
+kiwiopensusebase_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/Dicefile \
             kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/config.sh \
             kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/config.xml 
 
-kiwirootdir = $(kiwibasedir)/root
-kiwiroot_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger 
+kiwiopensuserootdir = $(kiwiopensusebasedir)/root
+kiwiopensuseroot_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger 
 
-kiwietcdir = $(kiwirootdir)/etc
-kiwietc_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/motd 
+kiwiopensuseetcdir = $(kiwiopensuserootdir)/etc
+kiwiopensuseetc_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/motd 
 
-kiwinetdir = $(kiwietcdir)/sysconfig/network
-kiwinet_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
+kiwiopensusenetdir = $(kiwiopensuseetcdir)/sysconfig/network
+kiwiopensusenet_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
             kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/dhcp 
 
-kiwiudevdir = $(kiwietcdir)/udev/rules.d/
-kiwiudev_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules 
+kiwiopensuseudevdir = $(kiwiopensuseetcdir)/udev/rules.d/
+kiwiopensuseudev_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules 
 
-kiwisystemdir = $(kiwirootdir)/usr/lib/systemd/system/
-kiwisystem_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service
+kiwiopensusesystemdir = $(kiwiopensuserootdir)/usr/lib/systemd/system/
+kiwiopensusesystem_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service
+
+kiwislesbasedir = $(docdir)/kiwi-descriptions/SUSE/x86_64/sles-15-JeOS \
+kiwislesbase_DATA = kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/Dicefile \
+            kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/config.sh \
+            kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/config.xml 
+
+kiwislesrootdir = $(kiwislesbasedir)/root
+kiwislesroot_DATA = kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/root/.kiwi_grub_config.trigger 
+
+kiwislesetcdir = $(kiwislesrootdir)/etc
+kiwislesetc_DATA = kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/root/etc/motd 
+
+kiwislesnetdir = $(kiwislesetcdir)/sysconfig/network
+kiwislesnet_DATA = kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
+            kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/root/etc/sysconfig/network/dhcp 
+
+kiwislesudevdir = $(kiwislesetcdir)/udev/rules.d/
+kiwislesudev_DATA = kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/root/etc/udev/rules.d/70-persistent-net.rules 
+
+kiwislessystemdir = $(kiwislesrootdir)/usr/lib/systemd/system/
+kiwislessystem_DATA = kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/root/usr/lib/systemd/system/grub_config.service\
+                      kiwi-descriptions/SUSE/x86_64/sles-15-JeOS/root/etc/systemd/system/RegisterFirst.service

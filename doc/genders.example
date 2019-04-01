@@ -14,7 +14,10 @@
 # 
 # example for kiwi generated install entry
 #
-JeOS15     initrd=/leap15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/leap15/LimeJeOS-Leap-15.0.xz,kernel=/leap15/LimeJeOS-Leap-15.0.kernel,nextboot=local,trigger=LimeJeOS-Leap-15.0.xz
+# openSUSE Leap15 example entry 
+#JeOS15     initrd=/leap15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/leap15/LimeJeOS-Leap-15.0.xz,kernel=/leap15/LimeJeOS-Leap-15.0.kernel,nextboot=local,trigger=LimeJeOS-Leap-15.0.xz
+# SLES-15 example entry 
+#SLE15     initrd=/sles15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/sles15/LimeJeOS-SLE-15.0.xz,kernel=/sles15/LimeJeOS-SLE-15.0.kernel,nextboot=local,trigger=LimeJeOS-SLE-15.0.xz
 #
 # local boot entry
 #
