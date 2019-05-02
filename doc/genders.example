@@ -21,7 +21,7 @@
 #
 # local boot entry
 #
-local menu=label\wsboot\wsfrom\wslocal\wsdisk,com32=chain.c32,mandatory,grub=configfile\ws(hd0\cogpt3)/boot/grub2/grub.cfg
+local menu=Boot\wsfrom\wslocal\wsdisk,com32=chain.c32,mandatory,grub=configfile\ws(hd0\cogpt3)/boot/grub2/grub.cfg
 #
 # node entries
 #
