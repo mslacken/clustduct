@@ -7,7 +7,7 @@ The central component of `clustduct` is the script
 `/usr/sbin/clustduct.lua`
 and is called directly by `dnsmasq` at every dhcp and tftp activity of `dnsmasq`.
 
-Two scrips are used to create and maintain the directory and file structure for booting and installing the `compute nodes`. In order to copy the files from the `syslinux` package the shell script
+Two scripts are used to create and maintain the directory and file structure for booting and installing the `compute nodes`. In order to copy the files from the `syslinux` package the shell script
 ```
 /usr/sbin/prepare_tftp.sh
 ```
@@ -46,7 +46,7 @@ confdir | the directory where clustduct searches for template files, `/etc/clust
 
 ## template files
 
-During the initializaton of `clustduct` or the call of `write_bf.lua` individual entries for every node is created. As templates for the menus shown at boot time, two template files are used
+During the initializaton of `clustduct` or by calling `write_bf.lua` individual entries for every node are created. As templates for the menus shown at boot time, two files are used:
 For the PXE boot, the file
 ```
 /etc/clustduct.d/pxe_iptemplate
