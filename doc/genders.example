@@ -5,23 +5,23 @@
 # each of which can optionally have a value.  The substitution string "%n" can
 # be used in an attribute value to represent the nodename.  Nodenames can be
 # listed on multiple lines, so a node's attributes can be specified on multiple
-# lines. However, no single node may have duplicate attributes. Genders database 
-# accepts ranges of nodenames in the general form: prefix[n-m,l-k,...], 
+# lines. However, no single node may have duplicate attributes. Genders database
+# accepts ranges of nodenames in the general form: prefix[n-m,l-k,...],
 # where n < m and l < k, etc., as an alternative to explicit lists of nodenames.
 #
 # Example file for clustduct with ten nodes and a entry to boot the nodes
 # from the local disk
-# 
+#
 # example for kiwi generated install entry
 #
-# openSUSE Leap15 example entry 
-#JeOS15     initrd=/leap15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/leap15/LimeJeOS-Leap-15.0.xz,kernel=/leap15/LimeJeOS-Leap-15.0.kernel,nextboot=local,trigger=LimeJeOS-Leap-15.0.xz
-# SLES-15 example entry 
-#SLE15     initrd=/sles15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/sles15/LimeJeOS-SLE-15.0.xz,kernel=/sles15/LimeJeOS-SLE-15.0.kernel,nextboot=local,trigger=LimeJeOS-SLE-15.0.xz
+# openSUSE Leap15 example entry
+#JeOS15     initrd=/leap15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/leap15/LimeJeOS-Leap-15.1.xz,kernel=/leap15/LimeJeOS-Leap-15.1.kernel,nextboot=local,trigger=LimeJeOS-Leap-15.1.xz
+# SLES-15-1 example entry
+#SLE15     initrd=/sles15.1/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/sles15.1/LimeJeOS-SLE-15.1.xz,kernel=/sles15.1/LimeJeOS-SLE-15.1.kernel,nextboot=local,trigger=LimeJeOS-SLE-15.1.xz
 #
 # local boot entry
 #
-local menu=label\wsboot\wsfrom\wslocal\wsdisk,com32=chain.c32,mandatory,grub=configfile\ws(hd0\cogpt3)/boot/grub2/grub.cfg
+local menu=Boot\wsfrom\wslocal\wsdisk,com32=chain.c32,mandatory,grub=configfile\ws(hd0\cogpt3)/boot/grub2/grub.cfg
 #
 # node entries
 #

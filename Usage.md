@@ -1,5 +1,5 @@
 # Bare metal deployment with dnsmasq and kiwi
-If a smaller clusters should be deployed on bare metal with `clustduct`, following prerequisites must be met:
+To deploy a cluster with `clustduct`, following prerequisites must be met:
 
    * internet access
    * separate network without an active dhcp server
@@ -20,9 +20,9 @@ Key | Example value | Used value
 *domain*          | cluster.suse |___________
 
 ## Setup of *managment server*
-The *managment server* can be installed via the *HPC Managment Server (Head Node)* role, but other means of setup are also possible. 
+The *managment server* may be installed via the *HPC Managment Server (Head Node)* role, but other means of setup are also possible.
 
-After the installation of the package `clustduct`, all necessary components are available.
+After installing the package `clustduct`, all necessary components are available.
 Following services must be **disabled**
 
   * firewall
@@ -31,12 +31,10 @@ Following services must be **disabled**
 Following packages must be installed:
 
   * python3-kiwi
-  * tftp.socket
 
 Following services must be **enabled** and **running**
 
   * sshd
-  * tftp
 
 Following service must be **enabled**
 
@@ -60,7 +58,7 @@ aa-disable /etc/apparmor.d/usr.sbin.dnsmasq
 ```
 systemctl disable apparmor.service
 ```
-    afterwards the machine must be rebooted.
+     afterwards the machine must be rebooted.
 
 WARNING: Disabling the `apparmor` profile introduces security issues which can be ignored as the *cluster network* is assumed to be a protected network.
 
@@ -71,9 +69,9 @@ The package *clustduct* contains also an example configuration for *dnsmasq* in 
 ```
 local=/cluster.suse/
 ```
-  * dynamic range
+  * dynamic range (modify to your needs)
 ```
-dhcp-range=192.168.100.50,192.168.100.60,12h (modify to your needs)
+dhcp-range=192.168.100.50,192.168.100.60,12h
 ```
   * tftp enabled and deployment directory
 ```
@@ -97,21 +95,24 @@ read-ethers
 user=root
 group=root
 ```
-  * *gateway* for the *cluster network*
+  * *gateway* for the *cluster network* (modify to your needs)
 ```
-dhcp-option=option:router,192.168.100.1 (modify to your needs)
+dhcp-option=option:router,192.168.100.1
 ```
 
 Once dnsmasq has been configured, it may be (re)started.
 
 ## `genders` databases for the node configuration
-The genders database connects the *mac* addresses of the *compute nodes* with the *ip* address and the corresponding FQDN . A flat file in `/etc/genders` is used as database. If the mac addresses of the hosts are known they could also be added before the node installation, if not they can be set during the boot process or, depending on the configuration, will be added in linear manner.
+The genders database connects the *mac* addresses of the *compute nodes* with the *ip* address and the corresponding FQDN . A flat file in `/etc/genders` is used as database. If the mac addresses of the hosts are known they may also be added before the node installation, if not they can be set during the boot process or, depending on the configuration, will be added in linear manner.
 
 ### Adding known `mac` addresses to `genders`
-Previosily known `mac` addresses of nodes can be added to the database by adding a single line whic contains the node name and mac address to the file `/etc/genders`. The format must be like
+Previosily known `mac` addresses of nodes may be added to the database by adding a single line which contains the node name and mac address to the file `/etc/genders`. The format must be like
 ```
 NODENAME mac=$MACADDRESS
 ```
+After editing the `genders` database it is advisable to check its syntax by
+executing `nodeattr -k`.
+
 ## JeOS leap 15.0 image creation
 Descriptions for creating images can be found under the directory
 ```

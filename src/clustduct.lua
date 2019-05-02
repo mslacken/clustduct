@@ -218,7 +218,7 @@ function tftp(action,args)
 				handle:reload(config.clustduct["genders"])
 				send_signal()
 			else
-				print("clustduct: WARNING: mac="..mac.." is allreay in database")
+				print("clustduct: WARNING: mac="..mac.." is already in database")
 			end
 		end
 	end

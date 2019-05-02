@@ -1,6 +1,6 @@
 DEFAULT menu
 PROMPT 0
-MENU TITLE Boomenut for clustduct deployment
+MENU TITLE Bootmenu for clustduct deployment
 TIMEOUT 600
 TOTALTIMEOUT 6000
 ONTIMEOUT Clustduct

@@ -1,12 +1,13 @@
 PROMPT 0
-MENU TITLE $NODE $IP $MAC 
+MENU TITLE $NODE $IP $MAC
 DEFAULT menu
 TIMEOUT 100
 
 $ENTRY
 
 MENU SEPERATOR
-LABEL Save to database and reboot
+LABEL save_reboot
+	MENU LABEL Save to database and reboot
 	COM32 reboot.c32
 LABEL go_back
 	MENU LABEL Go to clustduct menu
