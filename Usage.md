@@ -58,7 +58,7 @@ aa-disable /etc/apparmor.d/usr.sbin.dnsmasq
 ```
 systemctl disable apparmor.service
 ```
-     afterwards the machine must be rebooted.
+afterwards the machine must be rebooted.
 
 WARNING: Disabling the `apparmor` profile introduces security issues which can be ignored as the *cluster network* is assumed to be a protected network.
 
