@@ -3,7 +3,7 @@
 The deployment tool `clustduct` connects the `genders` database to the `dnsmasq` service. During initialization the files `/etc/ethers` and `/etc/hosts` are populated by `node` entries from the genders database. `clustduct` also monitors *tftp* file transfers and can so be used to deploy prebuilt images to `compute nodes`.
 
 ## components of `clustduct`
-The central component of `clustduct` is the script 
+The central component of `clustduct` is the script
 `/usr/sbin/clustduct.lua`
 and is called directly by `dnsmasq` at every dhcp and tftp activity of `dnsmasq`.
 
@@ -66,7 +66,7 @@ $IP   | replaced with ip address
 
 
 ## genders database
-The genders database is the single flat file located under `/etc/genders`. The format is 
+The genders database is the single flat file located under `/etc/genders`. The format is
 ```
 IDENTIFICATION KEY=VALUE
 ```

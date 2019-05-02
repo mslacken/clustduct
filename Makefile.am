@@ -20,23 +20,23 @@ clustductdoc_DATA = doc/* Usage.md Readme.md COPYING Bugs.md configs/default con
 #efidir = $(prefix)/../srv/tftpboot/EFI/x86
 #efi_DATA = configs/grub.cfg
 
-kiwiopensusebasedir = $(docdir)/kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS \
+kiwiopensusebasedir = $(docdir)/kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS
 kiwiopensusebase_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/Dicefile \
             kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/config.sh \
-            kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/config.xml 
+            kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/config.xml
 
 kiwiopensuserootdir = $(kiwiopensusebasedir)/root
-kiwiopensuseroot_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger 
+kiwiopensuseroot_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/.kiwi_grub_config.trigger
 
 kiwiopensuseetcdir = $(kiwiopensuserootdir)/etc
-kiwiopensuseetc_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/motd 
+kiwiopensuseetc_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/motd
 
 kiwiopensusenetdir = $(kiwiopensuseetcdir)/sysconfig/network
 kiwiopensusenet_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
-            kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/dhcp 
+            kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/sysconfig/network/dhcp
 
 kiwiopensuseudevdir = $(kiwiopensuseetcdir)/udev/rules.d/
-kiwiopensuseudev_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules 
+kiwiopensuseudev_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/etc/udev/rules.d/70-persistent-net.rules
 
 kiwiopensusesystemdir = $(kiwiopensuserootdir)/usr/lib/systemd/system/
 kiwiopensusesystem_DATA = kiwi-descriptions/openSUSE/x86_64/suse-leap-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service

@@ -20,7 +20,7 @@ Key | Example value | Used value
 *domain*          | cluster.suse |___________
 
 ## Setup of *managment server*
-The *managment server* can be installed via the *HPC Managment Server (Head Node)* role, but other means of setup are also possible. 
+The *managment server* may be installed via the *HPC Managment Server (Head Node)* role, but other means of setup are also possible.
 
 After installing the package `clustduct`, all necessary components are available.
 Following services must be **disabled**

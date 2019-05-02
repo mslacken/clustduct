@@ -5,13 +5,13 @@
 # each of which can optionally have a value.  The substitution string "%n" can
 # be used in an attribute value to represent the nodename.  Nodenames can be
 # listed on multiple lines, so a node's attributes can be specified on multiple
-# lines. However, no single node may have duplicate attributes. Genders database 
-# accepts ranges of nodenames in the general form: prefix[n-m,l-k,...], 
+# lines. However, no single node may have duplicate attributes. Genders database
+# accepts ranges of nodenames in the general form: prefix[n-m,l-k,...],
 # where n < m and l < k, etc., as an alternative to explicit lists of nodenames.
 #
 # Example file for clustduct with ten nodes and a entry to boot the nodes
 # from the local disk
-# 
+#
 # example for kiwi generated install entry
 #
 # openSUSE Leap15 example entry
