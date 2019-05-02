@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<image schemaversion="6.8" name="LimeJeOS-SLE-15">
+<image schemaversion="6.8" name="LimeJeOS-SLE-15.1">
     <description type="system">
         <author>Christian Goll</author>
         <contact>cgoll@suse.de</contact>
         <specification>
-            SUSE HPC 15 JeOS, is a small text based image
+            SUSE HPC 15 JeOS, small text based image
         </specification>
     </description>
     <preferences>
