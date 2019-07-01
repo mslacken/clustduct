@@ -48,18 +48,15 @@
     <packages type="image">
         <package name="checkmedia"/>
         <package name="patterns-openSUSE-base"/>
-        <package name="plymouth-branding-openSUSE"/>
-        <package name="plymouth-dracut"/>
-        <package name="grub2-branding-openSUSE"/>
         <package name="ifplugd"/>
         <package name="iputils"/>
         <package name="vim"/>
         <package name="grub2"/>
         <package name="grub2-x86_64-efi" arch="x86_64"/>
         <package name="grub2-i386-pc"/>
+        <package name="haveged"/>
         <package name="syslinux"/>
         <package name="lvm2"/>
-        <package name="plymouth"/>
         <package name="fontconfig"/>
         <package name="fonts-config"/>
         <package name="tar"/>
@@ -70,7 +67,7 @@
         <package name="bash-completion"/>
         <package name="dhcp-client"/>
         <package name="which"/>
-	<package name="salt-minion"/>
+        <package name="salt-minion"/>
         <package name="shim"/>
         <package name="kernel-default"/>
         <package name="timezone"/>

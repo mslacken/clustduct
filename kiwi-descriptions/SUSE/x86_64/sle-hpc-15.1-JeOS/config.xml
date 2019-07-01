@@ -44,7 +44,7 @@
         <user password="$1$wYJUgpM5$RXMMeASDc035eX.NbYWFl0" home="/root" name="root" groups="root"/>
     </users>
     <repository type="rpm-md" alias="kiwi" priority="1">
-        <source path="obs://Virtualization:Appliances:Builder/SLE_15"/>
+        <source path="obs://Virtualization:Appliances:Builder/SLE_15_SP1"/>
     </repository>
     <repository type="yast2" alias="SLE_installer">
 	    <source path="iso:// /root/SLE-15-Installer-DVD-x86_64-GA-Media1.iso"/>
@@ -56,40 +56,38 @@
     <packages type="image">
 	<package name="checkmedia"/>
         <package name="patterns-base-minimal_base"/>
-        <package name="plymouth-branding-SLE"/>
-	<package name="plymouth-dracut"/>
-	<package name="plymouth"/>
         <package name="grub2-branding-SLE-15"/>
         <package name="iputils"/>
-	<package name="vim"/>
+      	<package name="vim"/>
         <package name="grub2"/>
         <package name="grub2-x86_64-efi" arch="x86_64"/>
         <package name="grub2-i386-pc"/>
-	<package name="syslinux"/>
+        <package name="haveged"/>
+      	<package name="syslinux"/>
         <package name="fontconfig"/>
         <package name="fonts-config"/>
         <package name="tar"/>
         <package name="openssh"/>
         <package name="iproute2"/>
         <package name="less"/>
-	<package name="lvm2"/>
-	<package name="psmisc"/>
-	<package name="parted"/>
+      	<package name="lvm2"/>
+      	<package name="psmisc"/>
+      	<package name="parted"/>
         <package name="bash-completion"/>
         <package name="dhcp-client"/>
         <package name="which"/>
-	<package name="udev"/>
-	<package name="salt-minion"/>
+      	<package name="udev"/>
+      	<package name="salt-minion"/>
         <package name="shim"/>
-	<package name="systemd"/>
-	<package name="systemd-sysvinit"/>
-	<package name="dracut"/>
+      	<package name="systemd"/>
+      	<package name="systemd-sysvinit"/>
+      	<package name="dracut"/>
         <package name="kernel-default"/>
         <package name="timezone"/>
-	<package name="SLE_HPC-release"/>
-	<package name="SUSEConnect"/>
-	<package name="suse-build-key"/>
-	<package name="sle-module-basesystem-release"/>
+      	<package name="SLE_HPC-release"/>
+      	<package name="SUSEConnect"/>
+      	<package name="suse-build-key"/>
+      	<package name="sle-module-basesystem-release"/>
     </packages>
     <packages type="oem">
         <package name="dracut-kiwi-oem-repart"/>
