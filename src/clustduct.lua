@@ -89,7 +89,7 @@ function init()
 	if config.clustduct["genders"] == nil then config.clustduct["genders"]="/etc/genders"  end
 	if config.clustduct["linear_add"] == nil then config.clustduct["linear_add"]=false  end
 	if config.clustduct["confdir"] == nil then config.clustduct["confdir"]="/etc/clustduct.d/"  end
-	if config.clustduct["outdir"]  == nil then config.clustduct["outdir"] = "/srv/tftpboot/clustduct" end
+	if config.clustduct["outdir"]  == nil then config.clustduct["outdir"] = "/clustduct" end
 	if config.clustduct["tftpdir"]  == nil then config.clustduct["tftpdir"] = "/srv/tftpboot" end
 	if config.clustduct["netclass"]  == nil then config.clustduct["netclass"] = "01" end
 	handle = g_db.new(config.clustduct["genders"])
