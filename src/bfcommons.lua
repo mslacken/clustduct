@@ -19,6 +19,38 @@ function tprint (t, s)
 end
 -- common lua pxe/efi file functions is called from clustuct
 -- and clustuctbf
+
+function create_entry_pxe(entry,name)
+	name = name or "Boot_to_the_unknown"
+	ret_str = ""
+	ret_str = ret_str.."LABEL "..name.."\n"
+	if entry["menu"] ~= nil then 
+		ret_str = ret_str.."\tMENU LABEL "..entry["menu"].."\n"
+	else
+		ret_str = ret_str.."\tMENU LABEL "..name.."\n"
+	end
+	if entry["com32"] ~= nil then 
+		ret_str = ret_str.."\tCOM32 "..entry["com32"].."\n"
+	end
+	if entry["kernel"] ~= nil then 
+		ret_str = ret_str.."\tKERNEL "..entry["kernel"].."\n"
+	end
+	if entry["append"] ~= nil or entry["initrd"] ~= nil then 
+		ret_str = ret_str.."\tAPPEND "
+		if entry["append"] ~= nil then
+			ret_str = ret_str..entry["append"].." " end
+		if entry["initrd"] ~= nil then
+			ret_str = ret_str.."initrd="..entry["initrd"].." " end
+	end
+	for i = 0,100 do 
+		local pxe_key = "pxe"..i
+		if entry[pxe_key] ~= nil then
+			ret_str = ret_str..entry[pxe_key].."\n" end
+	end
+	ret_str = ret_str.."\n"
+	return ret_str
+end
+
 function create_pxe_node_file(node,handle,config) 
 	if config.clustduct["overwrite"] == nil then config.clustduct["overwrite"] = false end
 	local file, err = io.open(config.clustduct["confdir"].."/pxe_iptemplate","r")
@@ -26,7 +58,7 @@ function create_pxe_node_file(node,handle,config)
 	local pxe_template = file:read("*a")
 	file:close()
 	-- now create boot entry table
-	local entries = {} 
+	local sentr = ""
 	local node_args = handle:getattr(node)
 	pxe_template = string.gsub(pxe_template,"$NODE",node)	
 	if node_args["ip"] ~= nil then 
@@ -34,43 +66,23 @@ function create_pxe_node_file(node,handle,config)
 	if node_args["mac"] ~= nil then 
 		pxe_template = string.gsub(pxe_template,"$MAC",node_args["mac"]) end
 	if node_args["boot"] ~= nil then
-		create_entry(node_args["boot"],entries,handle) end
+		local boot_args = handle:getattr(node_args["boot"])
+		if boot_args ~= nil then
+			sentr = sentr..create_entry_pxe(boot_args,node_args["boot"]) end
+		end
 	if node_args["install"] ~= nil then
-		create_entry(node_args["install"],entries,handle) end
+		local boot_args = handle:getattr(node_args["install"])
+		if boot_args ~= nil then
+			sentr = sentr..create_entry_pxe(boot_args,node_args["install"]) end
+		end
 	local mand_entries = handle:query("mandatory")
 	if mand_entries ~= nil then  
 		for key,value in pairs(mand_entries) do
-			create_entry(value,entries,handle)
+			local boot_args = handle:getattr(value)
+			sentr = sentr..create_entry_pxe(boot_args,value)
 		end
 	end
-	local sentr = ""
-	for key,val in pairs(entries) do
-		sentr = sentr.."LABEL "..key.."\n"
-		if entries[key]["menu"] ~= nil then 
-			sentr = sentr.."\tMENU LABEL "..entries[key]["menu"].."\n"
-		else
-			sentr = sentr.."\tMENU LABEL "..key.."\n"
-		end
-		if entries[key]["com32"] ~= nil then 
-			sentr = sentr.."\tCOM32 "..entries[key]["com32"].."\n"
-		end
-		if entries[key]["kernel"] ~= nil then 
-			sentr = sentr.."\tKERNEL "..entries[key]["kernel"].."\n"
-		end
-		if entries[key]["append"] ~= nil or entries[key]["initrd"] ~= nil then 
-			sentr = sentr.."\tAPPEND "
-			if entries[key]["append"] ~= nil then
-				sentr = sentr..entries[key]["append"].." " end
-			if entries[key]["initrd"] ~= nil then
-				sentr = sentr.."initrd="..entries[key]["initrd"].." " end
-		end
-		for i = 0,100 do 
-			local pxe_key = "pxe"..i
-			if entries[key][pxe_key] ~= nil then
-				sentr = sentr..entries[key][pxe_key].."\n" end
-		end
-		sentr = sentr.."\n"
-	end
+	sentr = clean_genders_str(sentr)
 	pxe_template = string.gsub(pxe_template,"$ENTRY",sentr)	
 
 	local ofile_name = config.clustduct['tftpdir']..'/'..config.clustduct["outdir"].."/"
@@ -342,6 +354,13 @@ function clean_genders(table)
 		t_str = string.gsub(t_str,"\\co",",")
 		table[key] = t_str
 	end
+end
+
+function clean_genders_str(str)
+	str = string.gsub(str,"\\ws"," ")
+	str = string.gsub(str,"\\eq","=")
+	str = string.gsub(str,"\\co",",")
+	return str
 end
 
 function create_entry(entry,entries,handle)

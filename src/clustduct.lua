@@ -92,6 +92,7 @@ function init()
 	if config.clustduct["outdir"]  == nil then config.clustduct["outdir"] = "/clustduct" end
 	if config.clustduct["tftpdir"]  == nil then config.clustduct["tftpdir"] = "/srv/tftpboot" end
 	if config.clustduct["netclass"]  == nil then config.clustduct["netclass"] = "01" end
+	if config.clustduct["overwrite"] == nil then config.clustduct["overwrite"] = true end
 	handle = g_db.new(config.clustduct["genders"])
 	print("clustduct: opened genders database "..config.clustduct["genders"].." with "..#handle:getnodes().." nodes")
 	-- will update hosts file now
@@ -160,6 +161,7 @@ function lease(action,args)
 				local node_attr = handle:getattr(node[1])
 				if node_attr["mac"] == nil then
 					update_db(node[1],"mac="..args["mac_address"])
+					handle:reload(config.clustduct["genders"])
 				else
 					print("clustduct: WARNING: mac="..mac.." is already in database")
 				end
@@ -249,6 +251,10 @@ function tftp(action,args)
 		if string.find(args["file_name"],"%g*"..ftrigger.."%g*") and install_attr["nextboot"] ~= nil then
 			print("clustduct: trigger "..install_attr["trigger"].." setting "..node[1].." boot="..install_attr["nextboot"])
 			update_db(node[1],"boot="..install_attr["nextboot"])
+			handle:reload(config.clustduct["genders"])
+			send_signal()
+			create_pxe_node_file(node[1],handle,config) 
+			create_grub_node_file(node[1],handle,config) 
 		end
 	end
 end
