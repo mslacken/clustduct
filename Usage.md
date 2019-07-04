@@ -84,7 +84,7 @@ dhcp-boot=pxelinux.0
 ```
   * *clustduct* script
 ```
-dhcp-script=/usr/sbin/clustduct.sh
+dhcp-luascript=/usr/sbin/clustduct.lua
 ```
   * enable mac management
 ```
@@ -113,22 +113,26 @@ NODENAME mac=$MACADDRESS
 After editing the `genders` database it is advisable to check its syntax by
 executing `nodeattr -k`.
 
-## JeOS leap 15.0 image creation
-Descriptions for creating images can be found under the directory
+## Install image creation
+Sample kiwi configurations for creating images can be found under the directory
 ```
-/usr/share/doc/clustduct/kiwi-descriptions/[open]SUSE/
+/usr/share/doc/clustduct/kiwi-descriptions/SUSE/
+```
+and
+```
+/usr/share/doc/clustduct/kiwi-descriptions/openSUSE/
 ```
 The install image is prepared with
 ```
 cd /usr/share/doc/clustduct
-kiwi-ng --type oem system prepare\
+kiwi --type oem system prepare\
 --description kiwi-descriptions/suse/x86_64/suse-leap-15.0-JeOS \
 --root /tmp/leap15_oem_pxe
 ```
-Now the root file system for the new nodes is available under `/tmp/leap15_oem_pxe` and simple modifications can be made to it, but they will be lost if a new system is created via the `kiwi-ng system prepare` command. To install the *compute nodes* the image has to be packed. This is done with the commands:
+Now the root file system for the new nodes is available under `/tmp/leap15_oem_pxe` and simple modifications can be made to it, but they will be lost if a new system is created via the `kiwi system prepare` command. To install the *compute nodes* the image has to be packed. This is done with the commands:
 ```
 mkdir /tmp/packed_image
-kiwi-ng --type=oem system create --root=/tmp/leap15_oem_pxe  \
+kiwi --type=oem system create --root=/tmp/leap15_oem_pxe  \
 --target-dir=/tmp/packed_image
 ```
 
