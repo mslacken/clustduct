@@ -273,11 +273,11 @@ function create_pxe_structure(handle,config)
 		output_str = output_str.."LABEL "..node.."\n\tMENU LABEL Boot as node "..node.."\n\tKERNEL menu.c32\n\tAPPEND "..config.clustduct["outdir"].."/clustduct_node."..node..".pxe\n"
 		-- to the node file
 		create_pxe_node_file(node,handle,config) 
-		if counter == config.clustduct["base"]  then
+		if counter == config.clustduct["base"] or i == #nodes then
 			for n = 1, exponent do
 				local modulo = i%(config.clustduct["base"]^n)
-				if modulo == 0 then
-					output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tMENU EXIT\nMENU END"
+				if modulo == 0 or i == #nodes then
+					output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tMENU EXIT\nMENU END\n"
 					output_str = string.gsub(output_str,"ENDNODE",node)
 
 					level = level - 1
@@ -294,7 +294,7 @@ function create_pxe_structure(handle,config)
 	for n = 1, level do
 		output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tMENU EXIT\n\tMENU END\n"
 	end
-	output_str = output_str.."LABEL go_back\n\tMENU LABEL Go back...\n\tKERNEL menu.c32\n\tAPPEND ~\n"
+	output_str = output_str.."LABEL reboot\n\tMENU LABEL Reboot\n\tCOM32 reboot.c32\n"
 	if not file_exists(ofile_name) or config.clustduct["overwrite"] then
 		local ofile, err = io.open(ofile_name,"w")
 		if err ~= nil then
