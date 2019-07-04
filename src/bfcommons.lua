@@ -72,15 +72,15 @@ function create_pxe_node_file(node,handle,config)
 	if node_args["boot"] ~= nil then
 		local boot_args = handle:getattr(node_args["boot"])
 		if boot_args ~= nil then
-			sentr = sentr..create_entry_pxe(boot_args,node_args["boot"]) end
+			sentr = sentr..create_entry_pxe(boot_args,node_args["boot"]) 
 			entry_name[node_args["boot"]] = true
-		end
+	end end
 	if node_args["install"] ~= nil then
 		local boot_args = handle:getattr(node_args["install"])
 		if boot_args ~= nil then
-			sentr = sentr..create_entry_pxe(boot_args,node_args["install"]) end
+			sentr = sentr..create_entry_pxe(boot_args,node_args["install"]) 
 			entry_name[node_args["install"]] = true
-		end
+	end end
 	local mand_entries = handle:query("mandatory")
 	if mand_entries ~= nil then  
 		for key,value in pairs(mand_entries) do
@@ -121,6 +121,40 @@ function create_pxe_node_file(node,handle,config)
 		end
 	end
 end
+function create_entry_grub(entry,name)
+	ret_str = ""
+	ret_str = ret_str.."menuentry"
+	name = name or "Boot_to_the_unknown"
+	if entry["menu"] ~= nil then 
+		ret_str = ret_str.." '"..entry["menu"].."' {\n\tset gfxpayload=keep\n"
+	else
+		ret_str = ret_str.." '"..name.."' {\n\tset gfxpayload=keep\n"
+	end
+	if entry["kernel"] ~= nil then 
+		ret_str = ret_str.."\techo 'Loading kernel ...'\n\tlinuxefi "..entry["kernel"] end
+	if entry["linuxefi"] ~= nil then 
+		ret_str = ret_str.."\techo 'Loading kernel ...'\n\tlinuxefi "..entry["linuxefi"] end
+	if entry["append"] ~= nil and 
+		(entry["kernel"] ~= nil or entry["linuxefi"] ~= nil ) then
+		ret_str = ret_str.." "..entry["append"].."\n" end
+	if entry["initrd"] ~= nil then
+		ret_str = ret_str.."\techo 'Loading initial ramdisk ...'\n\tinitrdefi "..entry["initrd"].."\n" end
+	if entry["initrdefi"] ~= nil then
+		ret_str = ret_str.."\tinitrdefi "..entry["initrdefi"].."\n" end
+	if entry["set"] ~= nil then
+		ret_str = ret_str.."\tset "..entry["set"].."\n" end
+	if entry["chainloader"] ~= nil then
+		ret_str = ret_str.."\tchainloader"..entry["chainloader"].."\n" end
+	if entry["grub"] ~= nil then
+		ret_str = ret_str.."\t"..entry["grub"].."\n" end
+	for i = 0,100 do 
+		local grub_key = "grub"..i
+		if entry[grub_key] ~= nil then
+			ret_str = ret_str..entry[grub_key].."\n" end
+	end
+	ret_str = ret_str.."\n}\n"
+	return ret_str
+end
 
 function create_grub_node_file(node,handle,config) 
 	if config.clustduct["overwrite"] == nil then config.clustduct["overwrite"] = false end
@@ -129,55 +163,40 @@ function create_grub_node_file(node,handle,config)
 	local grub_template = file:read("*a")
 	file:close()
 	-- now create boot entry table
-	local entries = {} 
+	local sentr = ""
+	local entry_name = {} 
 	local node_args = handle:getattr(node)
 	grub_template = string.gsub(grub_template,"$NODE",node)	
 	if node_args["ip"] ~= nil then 
 		grub_template = string.gsub(grub_template,"$IP",node_args["ip"]) end
 	if node_args["mac"] ~= nil then 
-		grub_template = string.gsub(grub_template,"$MAC",node_args["mac"]) end
+		grub_template = string.gsub(grub_template,"$MAC",node_args["mac"]) 
+	else
+		grub_template = string.gsub(grub_template,"$MAC","No mac specified") 
+	end
 	if node_args["boot"] ~= nil then
-		create_entry(node_args["boot"],entries,handle) end
+		local boot_args = handle:getattr(node_args["boot"])
+		if boot_args ~= nil then
+			sentr = sentr..create_entry_grub(boot_args,node_args)
+			entry_name[node_args["boot"]] = true
+	end end
 	if node_args["install"] ~= nil then
-		create_entry(node_args["install"],entries,handle) end
+		local boot_args = handle:getattr(node_args["install"])
+		if boot_args ~= nil then
+			sentr = sentr..create_entry_grub(boot_args,node_args["install"])
+			entry_name[node_args["install"]] = true
+	end end
 	local mand_entries = handle:query("mandatory")
 	if mand_entries ~= nil then  
 		for key,value in pairs(mand_entries) do
-			create_entry(value,entries,handle)
+			if entry_name[value] == nil then 
+				local boot_args = handle:getattr(value)
+				sentr = sentr..create_entry_grub(boot_args,value)
+				entry_name[value] = true
+			end
 		end
 	end
-	local sentr = ""
-	for key,val in pairs(entries) do
-		sentr = sentr.."menuentry"
-		if entries[key]["menu"] ~= nil then 
-			sentr = sentr.." '"..entries[key]["menu"].."' {\n\tset gfxpayload=keep\n"
-		else
-			sentr = sentr.." '"..key.."' {\n\tset gfxpayload=keep\n"
-		end
-		if entries[key]["kernel"] ~= nil then 
-			sentr = sentr.."\techo 'Loading kernel ...'\n\tlinuxefi "..entries[key]["kernel"] end
-		if entries[key]["linuxefi"] ~= nil then 
-			sentr = sentr.."\techo 'Loading kernel ...'\n\tlinuxefi "..entries[key]["linuxefi"] end
-		if entries[key]["append"] ~= nil and 
-			(entries[key]["kernel"] ~= nil or entries[key]["linuxefi"] ~= nil ) then
-			sentr = sentr.." "..entries[key]["append"].."\n" end
-		if entries[key]["initrd"] ~= nil then
-			sentr = sentr.."\techo 'Loading initial ramdisk ...'\n\tinitrdefi "..entries[key]["initrd"].."\n" end
-		if entries[key]["initrdefi"] ~= nil then
-			sentr = sentr.."\tinitrdefi "..entries[key]["initrdefi"].."\n" end
-		if entries[key]["set"] ~= nil then
-			sentr = sentr.."\tset "..entries[key]["set"].."\n" end
-		if entries[key]["chainloader"] ~= nil then
-			sentr = sentr.."\tchainloader"..entries[key]["chainloader"].."\n" end
-		if entries[key]["grub"] ~= nil then
-			sentr = sentr.."\t"..entries[key]["grub"].."\n" end
-		for i = 0,100 do 
-			local grub_key = "grub"..i
-			if entries[key][grub_key] ~= nil then
-				sentr = sentr..entries[key][grub_key].."\n" end
-		end
-		sentr = sentr.."\n}\n"
-	end
+	sentr = clean_genders_str(sentr)
 	grub_template = string.gsub(grub_template,"$ENTRY",sentr)	
 
 	local ofile_name = config.clustduct['tftpdir']..'/'..config.clustduct["outdir"].."/"
