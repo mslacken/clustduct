@@ -44,7 +44,7 @@ function update_db(node, attr)
 	local db_file = config.clustduct["genders"]
 	local file = io.open(db_file,"a")
 	if not file then error("could not open file "..db_file) end
-	file:write("\n"..node.." "..attr)
+	file:write(node.." "..attr.."\n")
 	file:close()
 	need_signal = true
 end
@@ -195,21 +195,13 @@ function tftp(action,args)
 	-- print("clustduct: tftp was called with:")
 	-- tprint(args)
 	local node = handle:query("ip="..args["destination_address"])
-	-- ip is not in database, return as we do not know that node
-	if node == nil then
-		return
-	end
-	if #node ~= 1 then
-		return
-	end
-	local node_attrs = handle:getattr(node[1])
 	-- check if node specific config was selected, which may called from other ip
 	local nodefromfile = string.match(args["file_name"],"%g+/clustduct_node%.(%g+)%.%g+")
 	if nodefromfile ~= nil then
 		if not handle:isnode(nodefromfile) then return end
 		-- check for valid nodename and check if ip is in database
 		if node[1] ~= nodefromfile then
-			print("clustduct: Will set ip="..args["destination_address"].." to "..nodefromfile.." was know as "..node[1])
+			print("clustduct: Will set node with ip="..args["destination_address"].." to "..nodefromfile)
 			if not allowfromhost(nodefromfile) then return end
 			-- read adress from the arp table
 			local shellhandle = io.popen("ip neigh show "..args["destination_address"])
@@ -230,6 +222,14 @@ function tftp(action,args)
 			end
 		end
 	end
+	-- ip is not in database and was not added, so return
+	if node == nil then
+		return
+	end
+	if #node ~= 1 then
+		return
+	end
+	local node_attrs = handle:getattr(node[1])
 	-- check if boot exists and return, check for install=$IMAGE
 	-- afterwards, so that the boot preceeds the install
 	-- after installation the boot=local may be added, ram only
