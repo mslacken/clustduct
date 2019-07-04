@@ -44,7 +44,7 @@ function update_db(node, attr)
 	local db_file = config.clustduct["genders"]
 	local file = io.open(db_file,"a")
 	if not file then error("could not open file "..db_file) end
-	file:write("\n"..node.." "..attr)
+	file:write(node.." "..attr.."\n")
 	file:close()
 	need_signal = true
 end
@@ -92,6 +92,7 @@ function init()
 	if config.clustduct["outdir"]  == nil then config.clustduct["outdir"] = "/clustduct" end
 	if config.clustduct["tftpdir"]  == nil then config.clustduct["tftpdir"] = "/srv/tftpboot" end
 	if config.clustduct["netclass"]  == nil then config.clustduct["netclass"] = "01" end
+	if config.clustduct["overwrite"] == nil then config.clustduct["overwrite"] = true end
 	handle = g_db.new(config.clustduct["genders"])
 	print("clustduct: opened genders database "..config.clustduct["genders"].." with "..#handle:getnodes().." nodes")
 	-- will update hosts file now
@@ -160,6 +161,7 @@ function lease(action,args)
 				local node_attr = handle:getattr(node[1])
 				if node_attr["mac"] == nil then
 					update_db(node[1],"mac="..args["mac_address"])
+					handle:reload(config.clustduct["genders"])
 				else
 					print("clustduct: WARNING: mac="..mac.." is already in database")
 				end
@@ -190,62 +192,69 @@ function lease(action,args)
 end
 
 function tftp(action,args)
-	print("clustduct: tftp was called with "..action)
-	-- check if node specific config was selected, which may called from other ip
-	-- we can always return as installation is always done with node specific file
-	local nodefromfile = string.match(args["file_name"],"%g+/clustduct_node%.(%g+)%.%g+")
-	if nodefromfile == nil then return end
-	print("clustduct: This is node "..nodefromfile)
-	-- check for valid nodename
-	if not handle:isnode(nodefromfile) then return end
-	-- check if ip is in database
+	-- print("clustduct: tftp was called with:")
+	-- tprint(args)
 	local node = handle:query("ip="..args["destination_address"])
-	if node == nil or node ~= nodefromfile then
-		print("clustduct: Will set ip="..args["destination_address"].." to "..nodefromfile)
-		if not allowfromhost(nodefromfile) then return end
-		-- read adress from the arp table
-		local shellhandle = io.popen("ip neigh show "..args["destination_address"])
-		local shellresult = shellhandle:read("*a")
-		shellhandle:close()
-		-- 
-		local mac = string.match(shellresult,"%g+%s%g+%s%g+%s%g+%s(%g+)%s%g+")
-		if mac ~= nil then
-			-- just update the mac in genders, the rest will be handled by old
-			-- and check if mac is in the database
-			local genders_mac = handle:query("mac="..mac)
-			if genders_mac == nil or #genders_mac == 0 then
-				update_db(nodefromfile,"mac="..mac)
-				handle:reload(config.clustduct["genders"])
-				send_signal()
-			else
-				print("clustduct: WARNING: mac="..mac.." is already in database")
+	-- check if node specific config was selected, which may called from other ip
+	local nodefromfile = string.match(args["file_name"],"%g+/clustduct_node%.(%g+)%.%g+")
+	if nodefromfile ~= nil then
+		if not handle:isnode(nodefromfile) then return end
+		-- check for valid nodename and check if ip is in database
+		if node[1] ~= nodefromfile then
+			print("clustduct: Will set node with ip="..args["destination_address"].." to "..nodefromfile)
+			if not allowfromhost(nodefromfile) then return end
+			-- read adress from the arp table
+			local shellhandle = io.popen("ip neigh show "..args["destination_address"])
+			local shellresult = shellhandle:read("*a")
+			shellhandle:close()
+			local mac = string.match(shellresult,"%g+%s%g+%s%g+%s%g+%s(%g+)%s%g+")
+			if mac ~= nil then
+				-- just update the mac in genders, the rest will be handled by old
+				-- and check if mac is in the database
+				local genders_mac = handle:query("mac="..mac)
+				if genders_mac == nil or #genders_mac == 0 then
+					update_db(nodefromfile,"mac="..mac)
+					handle:reload(config.clustduct["genders"])
+					send_signal()
+				else
+					print("clustduct: WARNING: mac="..mac.." is already in database")
+				end
 			end
 		end
 	end
-	if #node == 1 then
-		local node_attrs = handle:getattr(node[1])
-		-- check if boot exists and return, check for install=$IMAGE
-		-- afterwards, so that the boot preceeds the install
-		-- after installation the boot=local may be added, ram only
-		-- installation will only provide a boot
-		-- for reinstalltion the boot entry must be removed
-		-- check if node has boot entry
-		if node_attrs["boot"] ~= nil then return end
-		-- also do nothing if install was node defined
-		if node_attrs["install"] == nil then return end
-		-- check if the install entry is valid
-		if not handle:isnode(node_attrs["install"]) then return end
-		-- check is we have trigger
-		local install_attr = handle:getattr(node_attrs["install"])
-		if install_attr == nil then return end
-		if install_attr["trigger"] == nil then return end
-		-- check if trigger is in the transfered file
-		if args["file_name"] ~= nil then
-			local ftrigger = string.gsub(install_attr["trigger"],"(%W)","%%%1")
-			if string.find(args["file_name"],"%g*"..ftrigger.."%g*") and install_attr["nextboot"] ~= nil then
-				print("clustduct: trigger "..install_attr["trigger"].." setting "..node[1].." boot="..install_attr["nextboot"])
-				update_db(node[1],"boot="..install_attr["nextboot"])
-			end
+	-- ip is not in database and was not added, so return
+	if node == nil then
+		return
+	end
+	if #node ~= 1 then
+		return
+	end
+	local node_attrs = handle:getattr(node[1])
+	-- check if boot exists and return, check for install=$IMAGE
+	-- afterwards, so that the boot preceeds the install
+	-- after installation the boot=local may be added, ram only
+	-- installation will only provide a boot
+	-- for reinstalltion the boot entry must be removed
+	-- check if node has boot entry
+	if node_attrs["boot"] ~= nil then return end
+	-- also do nothing if install was node defined
+	if node_attrs["install"] == nil then return end
+	-- check if the install entry is valid
+	if not handle:isnode(node_attrs["install"]) then return end
+	-- check is we have trigger
+	local install_attr = handle:getattr(node_attrs["install"])
+	if install_attr == nil then return end
+	if install_attr["trigger"] == nil then return end
+	-- check if trigger is in the transfered file
+	if args["file_name"] ~= nil then
+		local ftrigger = string.gsub(install_attr["trigger"],"(%W)","%%%1")
+		if string.find(args["file_name"],"%g*"..ftrigger.."%g*") and install_attr["nextboot"] ~= nil then
+			print("clustduct: trigger "..install_attr["trigger"].." setting "..node[1].." boot="..install_attr["nextboot"])
+			update_db(node[1],"boot="..install_attr["nextboot"])
+			handle:reload(config.clustduct["genders"])
+			send_signal()
+			create_pxe_node_file(node[1],handle,config) 
+			create_grub_node_file(node[1],handle,config) 
 		end
 	end
 end
