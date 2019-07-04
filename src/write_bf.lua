@@ -24,10 +24,9 @@ for r, optarg, optind in getopt(arg, 'hfc:n:o:b:') do
 	end
 	if r == 'h' then
 		print '-h      print this help text'
-		print '-f      overwrite existing config files'
 		print '-n NODE create config only for given and not all nodes'
-		print '-o ARG  overwrite output dir'
-		print '-c ARG  overwrite confdir'
+		print '-o ARG  output dir'
+		print '-c ARG  confguration dir'
 		return 0
 	elseif r == 'c' then
 		config.clustduct["confdir"] = optarg
@@ -38,10 +37,8 @@ for r, optarg, optind in getopt(arg, 'hfc:n:o:b:') do
 		config.clustduct["tftpdir"] = optarg
 	elseif r == 'n' then
 		node = optarg
-	elseif r == 'f' then
-		force = true
 	end
-	config.clustduct['overwrite'] = force
+	config.clustduct['overwrite'] = true
 end
 
 local nodes = handle:query("ip")
