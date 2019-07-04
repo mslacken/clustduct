@@ -59,27 +59,36 @@ function create_pxe_node_file(node,handle,config)
 	file:close()
 	-- now create boot entry table
 	local sentr = ""
+	local entry_name = {}
 	local node_args = handle:getattr(node)
 	pxe_template = string.gsub(pxe_template,"$NODE",node)	
 	if node_args["ip"] ~= nil then 
 		pxe_template = string.gsub(pxe_template,"$IP",node_args["ip"]) end
 	if node_args["mac"] ~= nil then 
-		pxe_template = string.gsub(pxe_template,"$MAC",node_args["mac"]) end
+		pxe_template = string.gsub(pxe_template,"$MAC",node_args["mac"]) 
+	else
+		pxe_template = string.gsub(pxe_template,"$MAC","No mac specified") 
+	end
 	if node_args["boot"] ~= nil then
 		local boot_args = handle:getattr(node_args["boot"])
 		if boot_args ~= nil then
 			sentr = sentr..create_entry_pxe(boot_args,node_args["boot"]) end
+			entry_name[node_args["boot"]] = true
 		end
 	if node_args["install"] ~= nil then
 		local boot_args = handle:getattr(node_args["install"])
 		if boot_args ~= nil then
 			sentr = sentr..create_entry_pxe(boot_args,node_args["install"]) end
+			entry_name[node_args["install"]] = true
 		end
 	local mand_entries = handle:query("mandatory")
 	if mand_entries ~= nil then  
 		for key,value in pairs(mand_entries) do
-			local boot_args = handle:getattr(value)
-			sentr = sentr..create_entry_pxe(boot_args,value)
+			if entry_name[value] == nil then 
+				local boot_args = handle:getattr(value)
+				sentr = sentr..create_entry_pxe(boot_args,value)
+				entry_name[value] = true
+			end
 		end
 	end
 	sentr = clean_genders_str(sentr)
