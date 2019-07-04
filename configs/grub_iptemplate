@@ -2,7 +2,7 @@ set timeout=10
 
 $ENTRY
 
-menuentry 'Save to database and reboot' {
+menuentry '$NODE/$IP ($MAC) reboot' {
 	reboot
 }
 
