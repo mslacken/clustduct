@@ -1,4 +1,4 @@
-AC_INIT([clustduct], [0.0.1], [cgoll@suse.com], [clustduct], [http://github.com/mslacken/clustduct])
+AC_INIT([clustduct], [0.0.2], [cgoll@suse.com], [clustduct], [http://github.com/mslacken/clustduct])
 AM_INIT_AUTOMAKE
 AC_CONFIG_FILES([Makefile])
 

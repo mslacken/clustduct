@@ -5,7 +5,7 @@ sbin_SCRIPTS = src/clustduct.lua src/write_bf.lua src/prepare_tftp.sh
 luaexec_SCRIPTS = src/bfcommons.lua
 
 clustductconfddir = $(sysconfdir)/clustduct.d
-clustductconfd_DATA = configs/grub_iptemplate configs/pxe_iptemplate configs/clustduct.conf
+clustductconfd_DATA = configs/grub_iptemplate configs/pxe_iptemplate
 
 clustductconfdir = $(sysconfdir)
 clustductconf_DATA = configs/clustduct.conf
