@@ -19,7 +19,6 @@ can be used. It can be used with following command line options
 
 option | description
 -------|--------------------------------------------------
--f     | overwrite existing configuration files
 -n NODE| create configuration only for given and not all nodes
 -o DIRECTORY| base directory to write boot file to
 -c DIRECTORY| search directory for configuration files
@@ -43,7 +42,6 @@ genders |location of the genders database, default is `/etc/genders`
 domain | domain to which the nodes are expanded, *must* be the same as in `/etc/dnsmasq.conf`
 linear_add | if *true*, nodes with unknown `mac` addresses will be added to the `genders` database
 confdir | the directory where clustduct searches for template files, `/etc/clustduct.d/` is used as default
-overwrite| on changes, always overwite existing configuration files
 
 ## template files
 
