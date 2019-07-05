@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<image schemaversion="6.8" name="LimeJeOS-SLE-HPC-15.1">
+<image schemaversion="6.8" name="SLE-HPC-15.1-JeOS">
     <description type="system">
         <author>Christian Goll</author>
         <contact>cgoll@suse.de</contact>
@@ -47,10 +47,10 @@
         <source path="obs://Virtualization:Appliances:Builder/SLE_15_SP1"/>
     </repository>
     <repository type="yast2" alias="SLE_installer">
-	    <source path="iso:// /root/SLE-15-Installer-DVD-x86_64-GA-Media1.iso"/>
+	    <source path="iso:// /root/SLE-15SP1-Installer-DVD-x86_64-GA-Media1.iso"/>
     </repository>
     <repository type="yast2" alias="SLE_packages">
-	    <source path="iso:// /root/SLE-15-Packages-x86_64-GA-Media1.iso"/>
+	    <source path="iso:// /root/SLE-15SP1-Packages-x86_64-GA-Media1.iso"/>
     </repository>
 
     <packages type="image">

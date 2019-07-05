@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<image schemaversion="6.8" name="LimeJeOS-Leap-15.0">
+<image schemaversion="6.8" name="Leap-HPC-15.0-JeOS">
     <description type="system">
         <author>Marcus Schaefer</author>
         <contact>ms@suse.de</contact>
