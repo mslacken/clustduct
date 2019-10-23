@@ -1,21 +1,28 @@
-# clustduct reference
+# clustduct
 
-The deployment tool `clustduct` connects the `genders` database to the `dnsmasq` service. During initialization the files `/etc/ethers` and `/etc/hosts` are populated by `node` entries from the genders database. `clustduct` also monitors *tftp* file transfers and can so be used to deploy prebuilt images to `compute nodes`.
+The deployment tool `clustduct` connects the `genders` database to the `dnsmasq` service.
 
-## components of `clustduct`
-The central component of `clustduct` is the script
-`/usr/sbin/clustduct.lua`
-and is called directly by `dnsmasq` at every dhcp and tftp activity of `dnsmasq`.
+[genders](https://github.com/chaos/genders) is a static cluster configuration database used for cluster configuration management. The basic concept is that a
+genders file, usually `/etc/genders/` containing a list of node names and their attributes is easily readable with the command `nodeattr`.
 
-Two scripts are used to create and maintain the directory and file structure for booting and installing the `compute nodes`. In order to copy the files from the `syslinux` package the shell script
-```
-/usr/sbin/prepare_tftp.sh
-```
-can be used. For the creation of the files used for `grub` or PXE the `lua` script
-```
-/usr/sbin/write_bf.lua
-```
-can be used. It can be used with following command line options
+[dnsmasq](git://thekelleys.org.uk/dnsmasq.git) provides a DNS forwarder, DHCP server, router advertisement and network boot features for small computer networks.
+
+The configuration of both to work properly with clustduct will be detailed further below. If you are already using
+both tool, you'll see no special requirements are needed to integrating them with clustduct.
+
+## How does clustduct works
+During the initialization of every node, the files `/etc/ethers` and `/etc/hosts` are populated by the data provided by the `node` entries from the genders database. `clustduct` will also monitor *TFTP* file transfers and can be used to deploy prebuilt images to the `compute nodes`.
+
+### components of `clustduct`
+The central component of `clustduct` is the script `/usr/sbin/clustduct.lua`
+and is called directly by `dnsmasq` at every DHCP and TFTP activity of `dnsmasq`.
+
+Two scripts are used to create and maintain the directory and file structure for booting and installing the `compute nodes`.
+
+* The shell script `/usr/sbin/prepare_tftp.sh`, in order to copy the files from the `syslinux` package
+
+* The `lua` script `/usr/sbin/write_bf.lua` for the creation of the files used for `grub` or PXE.
+The following command line options are available:
 
 option | description
 -------|--------------------------------------------------
@@ -23,38 +30,26 @@ option | description
 -o DIRECTORY| base directory to write boot file to
 -c DIRECTORY| search directory for configuration files
 
-## configuration of `clustduct`
-The script 
-```
-/usr/sbin/clustduc.lua
-```
-can be configured with the file
-```
-/etc/clustduct.conf
-```
-which is not parsed, but is itself a `lua` table. Following values can be used
+### configuration of `clustduct`
+The script  `/usr/sbin/clustduct.lua` can be configured with the file `/etc/clustduct.conf`
+which is not parsed, but is itself a `lua` table. The following values can be used:
 
 option  | description
 --------|--------------------------------------------------
 ethers | location of the ethers files, default is `/etc/ethers`
 hosts | location of the hosts files, default is `/etc/hosts`
-genders |location of the genders database, default is `/etc/genders` 
+genders |location of the genders database, default is `/etc/genders`
 domain | domain to which the nodes are expanded, *must* be the same as in `/etc/dnsmasq.conf`
 linear_add | if *true*, nodes with unknown `mac` addresses will be added to the `genders` database
-confdir | the directory where clustduct searches for template files, `/etc/clustduct.d/` is used as default
+confdir | the directory where clustduct searches for template files, default is `/etc/clustduct.d/`
 
-## template files
+### template files
 
-During the initializaton of `clustduct` or by calling `write_bf.lua` individual entries for every node are created. As templates for the menus shown at boot time, two files are used:
-For the PXE boot, the file
-```
-/etc/clustduct.d/pxe_iptemplate
-``` 
-and for `grub` the file
-```
-/etc/clustduct.d/grub_iptemplate
-```
-is used. Following values are substituted
+During the initialization of `clustduct` or by calling `write_bf.lua` individual entries for every node are created. As templates for the menus shown at boot time, two files are used:
+
+* For the PXE boot, the file `/etc/clustduct.d/pxe_iptemplate`
+
+* For `grub` the file `/etc/clustduct.d/grub_iptemplate` with the following values being substituted
 
 value | description
 ------|--------------------------------------------------
@@ -63,13 +58,12 @@ $MAC  | replaced with mac address
 $IP   | replaced with ip address
 
 
-
-## genders database
+## Working with the genders database
 The genders database is the single flat file located under `/etc/genders`. The format is
 ```
 IDENTIFICATION KEY=VALUE
 ```
-as *IDENTIFICATION* the name of the node or image is used. The node entry will be expanded to the FQDN. For the use of `clustduct` every node needs a single entry for every `KEY` and `VALUE` as the scripts may add and delete whole lines. An example database is shown below:
+as *IDENTIFICATION* the name of the node or image is used. The node entry will be expanded to the FQDN. For the use of `clustduct`, every node needs a single entry for every `KEY` and `VALUE` as the scripts may add and delete whole lines. An example database is shown below:
 
 ```
 compute-01 ip=192.168.100.11
@@ -82,15 +76,15 @@ compute-03 mac=aa:bb:cc:dd:ee:ff
 
 value | description
 ------|--------------------------------------------------
-ip | used a ip address, *must* be present for node entry
-mac | used as for dhpd
+ip | used a IP address, *must* be present for node entry
+mac | used as for DHCP
 install | image entry which be used as default boot for node, inferior to boot
 boot | image entry for boot, takes precedence over install entry
 
 
 ### special characters
 
-As `genders` does not allow white spaces and other special characters, so following translation table is used
+As `genders` does not allow white spaces and other special characters, the following translation table is used:
 
 character | character description | value in `genders`
 ----------|-----------------------|-------------------
@@ -99,7 +93,8 @@ character | character description | value in `genders`
 
 ### image and boot entries
 
-If an IDENTIFICATION in the `genders` database has KEY called 'menu' it is interpreted as a boot entry for `grub` called from (U)EFI and/or pxe network boot. Following values used for the boot entries are common for PXE and `grub`. All values which are not listed below will be ignored.
+If an *IDENTIFICATION* in the `genders` database has KEY called 'menu' it is interpreted as a boot entry for `grub` called from (U)EFI and/or PXE network boot.
+The following values used for the boot entries are common for PXE and `grub`. All values which are not listed below will be ignored.
 
 value | description
 ------|--------------------------------------------------
@@ -130,17 +125,17 @@ grub | value is used without directly without 'grub'
 
 
 
-# Bare metal deployment with dnsmasq and kiwi
+## Bare metal deployment with dnsmasq and kiwi
 To deploy a cluster with `clustduct`, following prerequisites must be met:
 
-   * internet access
-   * separate network without an active dhcp server
-     * *gateway* of the *cluster network*
-   * *DNS* server outside of the cluster network
+  * internet access
+  * separate network without an active DHCP server
+  * *gateway* of the *cluster network*
+  * *DNS* server outside of the cluster network
 
-In this setup one node, from now on called *managment server*, provides *DNS* and *dhcp* information to the other nodes, called *compute nodes*.  The *managment server* is also used to generate images with *kiwi* and provide them to the *compute nodes*.
+In this setup one node, called *management server*, provides *DNS* and *DHCP* information to the other nodes, called *compute nodes*. This *management server* is also used to generate images with [kiwi](https://opensuse.github.io/kiwi/) and provide them to the *compute nodes*.
 
-## Table of used values
+### Table of used values
 
 Key | Example value | Used value
 ----|---------------|----------------
@@ -151,42 +146,41 @@ Key | Example value | Used value
 *static address*  | 192.168.100.254 |___________
 *domain*          | cluster.suse |___________
 
-## Setup of *managment server*
-The *managment server* may be installed via the *HPC Managment Server (Head Node)* role, but other means of setup are also possible.
+### Setup of *management server*
+The *management server* may be installed via the *HPC Management Server (Head Node)* role, but other means of setup are also possible.
 
 After installing the package `clustduct`, all necessary components are available.
-Following services must be **disabled**
+The following services must be **disabled**
 
   * firewall
   * apparmor
 
-Following packages must be installed:
+The following packages must be installed:
 
   * python3-kiwi
 
-Following services must be **enabled** and **running**
+The following services must be **enabled** and **running**
 
   * sshd
 
-Following service must be **enabled**
+And the following service must be **enabled**
 
   * dnsmasq
 
 Furthermore, set up a static IP address.
 
-  * static ip address
+  * static IP address
 
 
-NOTE: Disable apparmor
+#### Disabling apparmor
 
-In some profiles, `apparmor` is installed and has a preconfigured profile for `dnsmasq`. It must be disabled which can be done in two ways.
+In some profiles, `apparmor` is installed and has a pre-configured profile for `dnsmasq`. It must be disabled which can be done in two ways.
 
    * The profile for `dnsmasq` can be disabled with
 ```
 aa-disable /etc/apparmor.d/usr.sbin.dnsmasq
 ```
    * or the `apparmor` service can be disabled with
-
 ```
 systemctl disable apparmor.service
 ```
@@ -234,11 +228,11 @@ dhcp-option=option:router,192.168.100.1
 
 Once dnsmasq has been configured, it may be (re)started.
 
-## `genders` databases for the node configuration
+### `genders` databases for the node configuration
 The genders database connects the *mac* addresses of the *compute nodes* with the *ip* address and the corresponding FQDN . A flat file in `/etc/genders` is used as database. If the mac addresses of the hosts are known they may also be added before the node installation, if not they can be set during the boot process or, depending on the configuration, will be added in linear manner.
 
 ### Adding known `mac` addresses to `genders`
-Previosily known `mac` addresses of nodes may be added to the database by adding a single line which contains the node name and mac address to the file `/etc/genders`. The format must be like
+Previously known `mac` addresses of nodes may be added to the database by adding a single line which contains the node name and mac address to the file `/etc/genders`. The format must be like
 ```
 NODENAME mac=$MACADDRESS
 ```
@@ -269,10 +263,10 @@ kiwi --type=oem system create --root=/tmp/leap15_oem_pxe  \
 ```
 
 ## Preparing the *tftboot* directory
-For the deployment of the *compute nodes* the *tftpboot* directory `/srv/tftpboot` must be prepared with the command 
+For the deployment of the *compute nodes* the *tftpboot* directory `/srv/tftpboot` must be prepared with the command
 ```
 prepare-tftp.sh
-``` 
+```
 which installs the necessary files for booting and installing the *compute nodes* over the network via *PXE* or *UEFI*. Finally the directory which holds the image for the *compute nodes* must be created with
 ```
 mkdir -p /srv/tftpboot/leap15/
@@ -283,7 +277,7 @@ cd /srv/tftpboot/leap15/
 tar xJf /tmp/packed_image/LimeJeOS-Leap-15.0.x86_64-1.15.0.install.tar.xz
 
 ```
-it. 
+it.
 
 
 
