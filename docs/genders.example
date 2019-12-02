@@ -20,7 +20,7 @@ LEAP15     initrd=/leap15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi
 #
 # SLE-HPC-15-1 example entry
 #
-SLE-HPC-15_1     initrd=/sle-hpc15.1/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/sle-hpc15.1/LimeJeOS-SLE-HPC-15.1.xz,kernel=/sle-hpc15.1/LimeJeOS-SLE-HPC-15.1.kernel,nextboot=local,trigger=LimeJeOS-SLE-HPC-15.1.xz
+SLE-HPC-15_2     initrd=/sle-hpc15.2/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/sle-hpc15.2/LimeJeOS-SLE-HPC-15.2.xz,kernel=/sle-hpc15.2/LimeJeOS-SLE-HPC-15.2.kernel,nextboot=local,trigger=LimeJeOS-SLE-HPC-15.2.xz
 #
 # local boot entry
 #
@@ -44,8 +44,27 @@ compute-10 ip=192.168.100.20
 
 # Install Leap 15.0
 #
-#compute-[01-10] install=LEAP15
+#compute-01 install=LEAP15
+#compute-02 install=LEAP15
+#compute-03 install=LEAP15
+#compute-04 install=LEAP15
+#compute-05 install=LEAP15
+#compute-06 install=LEAP15
+#compute-07 install=LEAP15
+#compute-08 install=LEAP15
+#compute-09 install=LEAP15
+#compute-10 install=LEAP15
+
 
 # Install SLE-HPC-15-SP1
 #
-#compute-[01-10] install=SLE-HPC-15_1
+#compute-01 install=SLE-HPC-15_2
+#compute-02 install=SLE-HPC-15_2
+#compute-03 install=SLE-HPC-15_2
+#compute-04 install=SLE-HPC-15_2
+#compute-05 install=SLE-HPC-15_2
+#compute-06 install=SLE-HPC-15_2
+#compute-07 install=SLE-HPC-15_2
+#compute-08 install=SLE-HPC-15_2
+#compute-09 install=SLE-HPC-15_2
+#compute-10 install=SLE-HPC-15_2

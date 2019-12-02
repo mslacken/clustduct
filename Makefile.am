@@ -41,24 +41,24 @@ kiwiopensuseudev_DATA = kiwi-descriptions/openSUSE/x86_64/leap-hpc-15.0-JeOS/roo
 kiwiopensusesystemdir = $(kiwiopensuserootdir)/usr/lib/systemd/system/
 kiwiopensusesystem_DATA = kiwi-descriptions/openSUSE/x86_64/leap-hpc-15.0-JeOS/root/usr/lib/systemd/system/grub_config.service
 
-kiwislebasedir = $(docdir)/kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS
-kiwislebase_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/Dicefile \
-            kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/config.sh \
-            kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/config.xml
+kiwislebasedir = $(docdir)/kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS
+kiwislebase_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/Dicefile \
+            kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/config.sh \
+            kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/config.xml
 
 kiwislerootdir = $(kiwislebasedir)/root
-kiwisleroot_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/root/.kiwi_grub_config.trigger
+kiwisleroot_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/root/.kiwi_grub_config.trigger
 
 kiwisleetcdir = $(kiwislerootdir)/etc
-kiwisleetc_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/root/etc/motd
+kiwisleetc_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/root/etc/motd
 
 kiwislenetdir = $(kiwisleetcdir)/sysconfig/network
-kiwislenet_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
-            kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/root/etc/sysconfig/network/dhcp
+kiwislenet_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/root/etc/sysconfig/network/ifcfg-lan0 \
+            kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/root/etc/sysconfig/network/dhcp
 
 kiwisleudevdir = $(kiwisleetcdir)/udev/rules.d/
-kiwisleudev_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/root/etc/udev/rules.d/70-persistent-net.rules
+kiwisleudev_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/root/etc/udev/rules.d/70-persistent-net.rules
 
 kiwislesystemdir = $(kiwislerootdir)/usr/lib/systemd/system/
-kiwislesystem_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/root/usr/lib/systemd/system/grub_config.service \
-                     kiwi-descriptions/SUSE/x86_64/sle-hpc-15.1-JeOS/root/etc/systemd/system/RegisterFirst.service
+kiwislesystem_DATA = kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/root/usr/lib/systemd/system/grub_config.service \
+                     kiwi-descriptions/SUSE/x86_64/sle-hpc-15.2-JeOS/root/etc/systemd/system/RegisterFirst.service
