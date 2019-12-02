@@ -8,13 +8,17 @@ local config = {}
 local cnf_file,err = loadfile(cnf_filename,"t",config)
 if cnf_file then cnf_file() else print(err) end
 if config.clustduct["confdir" ]== nil then config.clustduct["confdir"]="/etc/clustduct.d/" end
-if config.clustduct["outdir"] == nil then config.clustduct["outdir"] = "/srv/tftpboot/clustduct" end
 if config.clustduct["tftpdir"] == nil then config.clustduct["tftpdir"] = "/srv/tftpboot" end
+if config.clustduct["outdir"] == nil then config.clustduct["outdir"] = "/clustduct" end
 if config.clustduct["netclass"] == nil then config.clustduct["netclass"] = "01" end
+if config.clustduct["genders"] == nil then config.clustduct["genders"] = "/etc/genders" end
 local handle = g_db.new(config.clustduct["genders"])
+-- always overwrite files
+config.clustduct['overwrite'] = true
 -- variables
 local node = nil
 local force = false
+
 
 -- parse commandline
 getopt = require 'posix.unistd'.getopt
@@ -38,14 +42,12 @@ for r, optarg, optind in getopt(arg, 'hfc:n:o:b:') do
 	elseif r == 'n' then
 		node = optarg
 	end
-	config.clustduct['overwrite'] = true
 end
 
 local nodes = handle:query("ip")
 if node ~= nil then
 	create_pxe_node_file(node,handle,config)
 	create_grub_node_file(node,handle,config)
-else
-	create_pxe_structure(handle,config)
-	create_grub_structure(handle,config)
 end
+create_pxe_structure(handle,config)
+create_grub_structure(handle,config)

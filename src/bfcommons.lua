@@ -341,7 +341,7 @@ function create_grub_structure(handle,config)
 		if counter < config.clustduct["base"] and i ~= #nodes then
 			counter = counter + 1
 		else
-			output_str = output_str.."menuentry 'Go back...' {\n\tconfigfile "..config.clustduct["outdir"].."/grub-main.cfg\n}\n"
+			output_str = output_str.."menuentry 'Go back...' {\n\tconfigfile "..config.clustduct["outdir"].."/menu.grub\n}\n"
 			ofile_name = ofile_name.."_to_node_"..i..".grub"
 			menu_str = menu_str.." to "..node.."' {\n\t".."configfile "..ofile_name.."\n}\n"
 			-- dirty trick to remove leading configdir

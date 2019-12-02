@@ -1,5 +1,6 @@
 #!/bin/bash
 TFTPDIR=${TFTPDIR-/srv/tftpboot}
+test -d $TFTPDIR || mkdir -pv $TFTPDIR
 cp -v /usr/share/syslinux/chain.c32 /usr/share/syslinux/menu.c32 /usr/share/syslinux/pxelinux.0 /usr/share/syslinux/reboot.c32 $TFTPDIR
 mkdir -pv ${TFTPDIR}/pxelinux.cfg/
 cp -v /usr/share/doc/clustduct/default.example ${TFTPDIR}/pxelinux.cfg/default
