@@ -7,6 +7,6 @@ menuentry '$NODE/$IP ($MAC) reboot' {
 }
 
 menuentry 'Go back to main' {
-	configfile /clustduct/grub.cfg	
+	configfile /clustduct/menu.grub
 }
 
