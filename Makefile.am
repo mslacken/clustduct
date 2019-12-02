@@ -11,7 +11,7 @@ clustductconfdir = $(sysconfdir)
 clustductconf_DATA = configs/clustduct.conf
 
 clustductdocdir = $(docdir)
-clustductdoc_DATA = doc/* Usage.md Readme.md COPYING Bugs.md configs/default configs/grub.cfg
+clustductdoc_DATA = docs/* Usage.md Readme.md COPYING Bugs.md configs/default configs/grub.cfg
 
 #FIXME Evil hack to point to the real /
 #tftpdir= $(prefix)/../srv/tftpboot/pxelinux.cfg
