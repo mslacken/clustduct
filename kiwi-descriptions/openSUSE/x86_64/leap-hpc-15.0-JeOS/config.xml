@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<image schemaversion="6.8" name="Leap-HPC-15.1-JeOS">
+<image schemaversion="6.8" name="Leap-HPC-15.3-JeOS">
     <description type="system">
         <author>Marcus Schaefer</author>
         <contact>ms@suse.de</contact>
         <specification>
-            Leap 15.1 JeOS, is a small text based image
+            Leap 15.3 Applicance, is a small text based image
         </specification>
     </description>
     <preferences>
-        <type image="iso" primary="true" flags="overlay" hybrid="true" firmware="efi" kernelcmdline="splash" hybridpersistent_filesystem="ext4" hybridpersistent="true" mediacheck="true"/>
         <version>1.15.0</version>
         <packagemanager>zypper</packagemanager>
         <locale>en_US</locale>
@@ -17,39 +16,29 @@
         <timezone>Europe/Berlin</timezone>
         <rpm-excludedocs>true</rpm-excludedocs>
         <rpm-check-signatures>false</rpm-check-signatures>
-        <bootsplash-theme>openSUSE</bootsplash-theme>
+        <bootsplash-theme>bgrt</bootsplash-theme>
         <bootloader-theme>openSUSE</bootloader-theme>
     </preferences>
     <preferences>
-        <type image="vmx" filesystem="ext4" bootloader="grub2" kernelcmdline="splash" firmware="efi"/>
-        <type image="oem" filesystem="ext4" initrd_system="dracut" bootloader="grub2" kernelcmdline="splash" firmware="efi" installpxe="true">
+        <type image="oem" filesystem="btrfs" initrd_system="dracut" bootloader="grub2" kernelcmdline="splash" firmware="efi" installpxe="true">
             <oemconfig>
                 <oem-systemsize>2048</oem-systemsize>
                 <oem-swap>true</oem-swap>
                 <oem-device-filter>/dev/ram</oem-device-filter>
                 <oem-multipath-scan>false</oem-multipath-scan>
 		<oem-unattended>true</oem-unattended>
+		<oem-resize>true</oem-resize>
             </oemconfig>
-            <machine memory="512" guestOS="suse" HWversion="4">
-                <vmdisk id="0" controller="ide"/>
-                <vmnic driver="e1000" interface="0" mode="bridged"/>
-            </machine>
         </type>
     </preferences>
     <users>
         <user password="$1$wYJUgpM5$RXMMeASDc035eX.NbYWFl0" home="/root" name="root" groups="root"/>
     </users>
-    <repository type="rpm-md" alias="kiwi" priority="20">
-        <source path="obs://Virtualization:Appliances:Builder/openSUSE_Leap_15.1"/>
-</repository>
-    <repository type="rpm-md" alias="Leap_15_1" imageinclude="true">
-        <source path="obs://openSUSE:Leap:15.1/standard"/>
+    <repository type="rpm-md" alias="kiwi">
+        <source path="obs://Virtualization:Appliances:Builder/openSUSE_Leap_15.3"/>
     </repository>
-    <repository type="rpm-md" alias="mslacken" priority="20" imageinclude="true">
-	    <source path="obs://home:mslacken:pr/openSUSE_Leap_15.1"/>
-    </repository>
-    <repository type="rpm-md" alias="local" priority="10" imageinclude="false">
-	    <source path="dir:///root/local/"/>
+    <repository type="rpm-md" alias="Leap_15_3"  priority="1" imageinclude="true">
+        <source path="obs://openSUSE:Leap:15.3/standard"/>
     </repository>
     <packages type="image">
         <package name="checkmedia"/>
@@ -94,6 +83,7 @@
         <package name="glibc-locale"/>
         <package name="cracklib-dict-full"/>
         <package name="ca-certificates"/>
+        <package name="ca-certificates-mozilla"/>
         <package name="openSUSE-release"/>
     </packages>
 </image>
