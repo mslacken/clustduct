@@ -42,12 +42,8 @@
         <source path="obs://Virtualization:Appliances:Builder/SLE_15_SP3"/>
     </repository>
     <repository type="yast2" alias="SLES">
-	    <source path="iso:// /root/SLE-15SP1-Installer-DVD-x86_64-GA-Media1.iso"/>
+	    <source path="iso:// /root/SLE-15SP3-Full-x86_64-GA-Media1.iso"/>
     </repository>
-    <repository type="yast2" alias="SLE_packages">
-	    <source path="iso:// /root/SLE-15SP1-Packages-x86_64-GA-Media1.iso"/>
-    </repository>
-
     <packages type="image">
 	<package name="checkmedia"/>
         <package name="patterns-base-minimal_base"/>
