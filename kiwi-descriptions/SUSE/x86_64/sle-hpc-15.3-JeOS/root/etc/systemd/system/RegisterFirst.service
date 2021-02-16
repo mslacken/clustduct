@@ -1,0 +1,13 @@
+[Unit]
+Description=Register System at first boot
+After=network.target
+Before=getty.target
+ConditionFileNotEmpty=!/etc/zypp/repos.d/HPC_Module_15_SP1_x86_64:SLE-Module-HPC15-SP1-Pool.repo
+
+[Service]
+ExecStart=/usr/sbin/SUSEConnect -e EMAIL -r REGCODE
+Type=oneshot
+RemainAfterExit=true
+
+[Install]
+WantedBy=basic.target

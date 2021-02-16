@@ -14,17 +14,25 @@
 #
 # example for kiwi generated install entry
 #
-# openSUSE Leap15 example entry
+# openSUSE Leap15.3 example entry
 #
-LEAP15     initrd=/leap15/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/leap15/LimeJeOS-Leap-15.1.xz,kernel=/leap15/LimeJeOS-Leap-15.1.kernel,nextboot=local,trigger=LimeJeOS-Leap-15.1.xz
+LEAP15SP3     initrd=/leap15/pxeboot.Leap-HPC-15.3-JeOS.x86_64-1.15.0.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/leap15/Leap-HPC-15.3-JeOS.x86_64-1.15.0.xz,kernel=/leap15/Leap-HPC-15.3-JeOS.x86_64-1.15.0.kernel,nextboot=local,trigger=Leap-HPC-15.3-JeOS.x86_64-1.15.0.xz,mandatory
 #
-# SLE-HPC-15-1 example entry
+# SLE-HPC-15-3 example entry
 #
-SLE-HPC-15_2     initrd=/sle-hpc15.2/pxeboot.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/sle-hpc15.2/LimeJeOS-SLE-HPC-15.2.xz,kernel=/sle-hpc15.2/LimeJeOS-SLE-HPC-15.2.kernel,nextboot=local,trigger=LimeJeOS-SLE-HPC-15.2.xz
+SLE-HPC-15_3     initrd=/sle-hpc15.3/pxeboot.LimeJeOS-SLE-HPC-15.3.x86_64.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqtftp://192.168.100.254/sle-hpc15.3/LimeJeOS-SLE-HPC-15.3.xz,kernel=/sle-hpc15.3/LimeJeOS-SLE-HPC-15.3.kernel,nextboot=local,trigger=LimeJeOS-SLE-HPC-15.3.xz
 #
 # local boot entry
 #
 local menu=Boot\wsfrom\wslocal\wsdisk,com32=chain.c32,mandatory,grub=configfile\ws(hd0\cogpt3)/boot/grub2/grub.cfg
+#
+# local boot entry for dolly, which can be used when installing multiple images at once, on the master
+# server the dolly transfer has to be started with. The download via dolly is triggered by setting 
+# the image loaction ur dolly://$FOO
+# dolly -v -S 192.168.100.254 -H 192.168.100.01,compute-02,compute-03,compute-04,compute-05,compute-06,compute-07,compute-08,compute-09,compyte-10 -I /srv/tftpboot/sle-hpc/Leap-HPC-15.3-JeOS.x86_64-1.15.0.xz -O -
+# please note that all nodes given via the -H option must be up and running either 'dolly > img' or have to be booted the DOLLY option
+#
+DOLLY initrd=/sle-hpc15.3/pxeboot.Leap-HPC-15.3-JeOS.x86_64-1.15.0.initrd.xz,append=rd.kiwi.install.pxe\wsrd.kiwi.install.image\eqdolly://192.168.100.254/sle-hpc15.3/Leap-HPC-15.3-JeOS.x86_64-1.15.0.xz,kernel=/sle-hpc15.3/Leap-HPC-15.3-JeOS.x86_64-1.15.0.kernel,nextboot=local,mandatory
 #
 # node entries
 #
@@ -44,27 +52,27 @@ compute-10 ip=192.168.100.20
 
 # Install Leap 15.0
 #
-#compute-01 install=LEAP15
-#compute-02 install=LEAP15
-#compute-03 install=LEAP15
-#compute-04 install=LEAP15
-#compute-05 install=LEAP15
-#compute-06 install=LEAP15
-#compute-07 install=LEAP15
-#compute-08 install=LEAP15
-#compute-09 install=LEAP15
-#compute-10 install=LEAP15
+#compute-01 install=LEAP15SP3
+#compute-02 install=LEAP15SP3
+#compute-03 install=LEAP15SP3
+#compute-04 install=LEAP15SP3
+#compute-05 install=LEAP15SP3
+#compute-06 install=LEAP15SP3
+#compute-07 install=LEAP15SP3
+#compute-08 install=LEAP15SP3
+#compute-09 install=LEAP15SP3
+#compute-10 install=LEAP15SP3
 
 
-# Install SLE-HPC-15-SP1
+# Install SLE-HPC-15-SP3
 #
-#compute-01 install=SLE-HPC-15_2
-#compute-02 install=SLE-HPC-15_2
-#compute-03 install=SLE-HPC-15_2
-#compute-04 install=SLE-HPC-15_2
-#compute-05 install=SLE-HPC-15_2
-#compute-06 install=SLE-HPC-15_2
-#compute-07 install=SLE-HPC-15_2
-#compute-08 install=SLE-HPC-15_2
-#compute-09 install=SLE-HPC-15_2
-#compute-10 install=SLE-HPC-15_2
+#compute-01 install=SLE-HPC-15_3
+#compute-02 install=SLE-HPC-15_3
+#compute-03 install=SLE-HPC-15_3
+#compute-04 install=SLE-HPC-15_3
+#compute-05 install=SLE-HPC-15_3
+#compute-06 install=SLE-HPC-15_3
+#compute-07 install=SLE-HPC-15_3
+#compute-08 install=SLE-HPC-15_3
+#compute-09 install=SLE-HPC-15_3
+#compute-10 install=SLE-HPC-15_3

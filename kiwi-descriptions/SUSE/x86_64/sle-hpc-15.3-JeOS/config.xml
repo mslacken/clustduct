@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<image schemaversion="6.8" name="Leap-HPC-15.0-JeOS">
+<image schemaversion="6.8" name="SLE-HPC-15.3-JeOS">
     <description type="system">
-        <author>Marcus Schaefer</author>
-        <contact>ms@suse.de</contact>
+        <author>Christian Goll</author>
+        <contact>cgoll@suse.de</contact>
         <specification>
-            Leap 15.0 JeOS, is a small text based image
+            SUSE Linux Enterprise HPC 15.3 JeOS, small text based image
         </specification>
     </description>
     <preferences>
-        <type image="iso" primary="true" flags="overlay" hybrid="true" firmware="efi" kernelcmdline="splash" hybridpersistent_filesystem="ext4" hybridpersistent="true" mediacheck="true"/>
         <version>1.15.0</version>
         <packagemanager>zypper</packagemanager>
         <locale>en_US</locale>
@@ -17,12 +16,11 @@
         <timezone>Europe/Berlin</timezone>
         <rpm-excludedocs>true</rpm-excludedocs>
         <rpm-check-signatures>false</rpm-check-signatures>
-        <bootsplash-theme>openSUSE</bootsplash-theme>
-        <bootloader-theme>openSUSE</bootloader-theme>
+        <bootsplash-theme>SLE</bootsplash-theme>
+        <bootloader-theme>SLE</bootloader-theme>
     </preferences>
     <preferences>
-        <type image="vmx" filesystem="ext4" bootloader="grub2" kernelcmdline="splash" firmware="efi"/>
-        <type image="oem" filesystem="ext4" initrd_system="dracut" installpxe="true" bootloader="grub2" kernelcmdline="splash" firmware="efi">
+        <type image="oem" filesystem="btrfs" initrd_system="dracut" installpxe="true" bootloader="grub2" kernelcmdline="splash" firmware="efi">
             <oemconfig>
                 <oem-systemsize>2048</oem-systemsize>
                 <oem-swap>true</oem-swap>
@@ -37,47 +35,52 @@
         </type>
     </preferences>
     <users>
+	<!-- password is linux -->
         <user password="$1$wYJUgpM5$RXMMeASDc035eX.NbYWFl0" home="/root" name="root" groups="root"/>
     </users>
     <repository type="rpm-md" alias="kiwi" priority="1">
-        <source path="obs://Virtualization:Appliances:Builder/openSUSE_Leap_15.0"/>
+        <source path="obs://Virtualization:Appliances:Builder/SLE_15_SP3"/>
     </repository>
-    <repository type="rpm-md" alias="Leap_15_0" imageinclude="true">
-        <source path="obs://openSUSE:Leap:15.0/standard"/>
+    <repository type="yast2" alias="SLES">
+	    <source path="iso:// /root/SLE-15SP3-Full-x86_64-GA-Media1.iso"/>
     </repository>
     <packages type="image">
-        <package name="checkmedia"/>
-        <package name="patterns-openSUSE-base"/>
-        <package name="ifplugd"/>
+	<package name="checkmedia"/>
+        <package name="patterns-base-minimal_base"/>
+        <package name="grub2-branding-SLE-15"/>
         <package name="iputils"/>
-        <package name="vim"/>
+      	<package name="vim"/>
         <package name="grub2"/>
         <package name="grub2-x86_64-efi" arch="x86_64"/>
         <package name="grub2-i386-pc"/>
         <package name="haveged"/>
-        <package name="syslinux"/>
-        <package name="lvm2"/>
+      	<package name="syslinux"/>
         <package name="fontconfig"/>
         <package name="fonts-config"/>
         <package name="tar"/>
-        <package name="parted"/>
         <package name="openssh"/>
         <package name="iproute2"/>
         <package name="less"/>
+      	<package name="lvm2"/>
+      	<package name="psmisc"/>
+      	<package name="parted"/>
         <package name="bash-completion"/>
         <package name="dhcp-client"/>
         <package name="which"/>
-        <package name="salt-minion"/>
+      	<package name="udev"/>
+      	<package name="salt-minion"/>
         <package name="shim"/>
+      	<package name="systemd"/>
+      	<package name="systemd-sysvinit"/>
+      	<package name="dracut"/>
         <package name="kernel-default"/>
         <package name="timezone"/>
-    </packages>
-    <packages type="iso">
-        <package name="gfxboot-branding-openSUSE"/>
-        <package name="dracut-kiwi-live"/>
+      	<package name="SLE_HPC-release"/>
+      	<package name="SUSEConnect"/>
+      	<package name="suse-build-key"/>
+      	<package name="sle-module-basesystem-release"/>
     </packages>
     <packages type="oem">
-        <package name="gfxboot-branding-openSUSE"/>
         <package name="dracut-kiwi-oem-repart"/>
         <package name="dracut-kiwi-oem-dump"/>
     </packages>
@@ -87,6 +90,8 @@
         <package name="glibc-locale"/>
         <package name="cracklib-dict-full"/>
         <package name="ca-certificates"/>
-        <package name="openSUSE-release"/>
+        <package name="ca-certificates-mozilla"/>
+	<package name="SLE_HPC-release"/>
+	<package name="sle-module-basesystem-release"/>
     </packages>
 </image>
