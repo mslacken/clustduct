@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<image schemaversion="6.8" name="SLE-HPC-15.1-JeOS">
+<image schemaversion="6.8" name="SLE-HPC-15.3-JeOS">
     <description type="system">
         <author>Christian Goll</author>
         <contact>cgoll@suse.de</contact>
         <specification>
-            SUSE Linux Enterprise HPC 15 JeOS, small text based image
+            SUSE Linux Enterprise HPC 15.3 JeOS, small text based image
         </specification>
     </description>
     <preferences>
@@ -20,12 +20,7 @@
         <bootloader-theme>SLE</bootloader-theme>
     </preferences>
     <preferences>
-	    <type image="vmx" filesystem="ext4" bootloader="grub2" kernelcmdline="splash" firmware="efi" format="qcow2">
-		    <size>
-			    32768
-		    </size>
-	    </type>
-        <type image="oem" filesystem="ext4" initrd_system="dracut" installpxe="true" bootloader="grub2" kernelcmdline="splash" firmware="efi">
+        <type image="oem" filesystem="btrfs" initrd_system="dracut" installpxe="true" bootloader="grub2" kernelcmdline="splash" firmware="efi">
             <oemconfig>
                 <oem-systemsize>2048</oem-systemsize>
                 <oem-swap>true</oem-swap>
@@ -44,9 +39,9 @@
         <user password="$1$wYJUgpM5$RXMMeASDc035eX.NbYWFl0" home="/root" name="root" groups="root"/>
     </users>
     <repository type="rpm-md" alias="kiwi" priority="1">
-        <source path="obs://Virtualization:Appliances:Builder/SLE_15_SP1"/>
+        <source path="obs://Virtualization:Appliances:Builder/SLE_15_SP3"/>
     </repository>
-    <repository type="yast2" alias="SLE_installer">
+    <repository type="yast2" alias="SLES">
 	    <source path="iso:// /root/SLE-15SP1-Installer-DVD-x86_64-GA-Media1.iso"/>
     </repository>
     <repository type="yast2" alias="SLE_packages">
@@ -99,6 +94,7 @@
         <package name="glibc-locale"/>
         <package name="cracklib-dict-full"/>
         <package name="ca-certificates"/>
+        <package name="ca-certificates-mozilla"/>
 	<package name="SLE_HPC-release"/>
 	<package name="sle-module-basesystem-release"/>
     </packages>
