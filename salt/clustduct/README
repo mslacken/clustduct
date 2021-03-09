@@ -1,0 +1,2 @@
+This directory is manged by clustduct with the help of saltstack.
+Files not managed with this mechanism will be REMOVED.
