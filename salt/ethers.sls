@@ -10,10 +10,10 @@ ethers-generated-list:
     - filename: /etc/ethers
     - name: ethers-genrator
     - text: |
-{% for node in pillar['nodes'] %}
-{% if pillar['nodes'][node]['base-mac'] is defined %}
+{%- for node in pillar['nodes'] %}
+{%- if pillar['nodes'][node]['base-mac'] is defined %}
          {{ pillar['nodes'][node]['base-mac'] }} {{ pillar['nodes'][node]['base-ip'] }}
-{% endif %}
-{% endfor %}
+{%- endif %}
+{%- endfor %}
     - require_in:
       - file: ethers-custer-management

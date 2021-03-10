@@ -8,7 +8,7 @@ hosts-custer-management:
 host-generated-list:
   file.accumulated:
     - filename: /etc/hosts
-    - name: hosts-genrator
+    - name: hosts-generator
     - text: |
 {% for node in pillar['nodes'] %}
          {{ pillar['nodes'][node]['base-ip'] }} {{node}} {{ node ~ '.' ~ pillar['base-network']['dns_suffix'] }}
