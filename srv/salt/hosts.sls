@@ -11,7 +11,7 @@ host-generated-list:
     - name: hosts-generator
     - text: |
 {% for node in pillar['nodes'] %}
-         {{ pillar['nodes'][node]['base-ip'] }} {{node}} {{ node ~ '.' ~ pillar['base-network']['dns_suffix'] }}
+         {{ pillar['nodes'][node]['base-ip'] }} {{node}} {{ node ~ '.' ~ pillar['base-network']['local_dns'] }}
 {% endfor %}
     - require_in:
       - file: hosts-custer-management
