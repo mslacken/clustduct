@@ -48,20 +48,23 @@ function read_csv(path,sep,comment,tonum, null)
     local csvFile = {}
     local file = assert(io.open(path, "r"))
     for line in file:lines() do
-        if line:len() > 0 then
-            fields = line:split(comment) 
-            fields = fields[1]:split(sep)
-            if tonum then -- convert numeric fields to numbers
-                for i=1,#fields do
-                    local field = fields[i]
-                    if field == '' then
-                        field = null
-                    end
-                    fields[i] = tonumber(field) or field
-                end
-            end
+        local pos_com = line:find(comment)
+        if pos_com ~= nil then
+          line = line:sub(1,pos_com)
         end
-        table.insert(csvFile, fields)
+        if line:len() > 1 then
+          fields = line:split(sep,40,true)
+          if tonum then -- convert numeric fields to numbers
+              for i=1,#fields do
+                  local field = fields[i]
+                  if field == '' then
+                      field = null
+                  end
+                  fields[i] = tonumber(field) or field
+              end
+            end
+          table.insert(csvFile, fields)
+        end
     end
     file:close()
     return csvFile
@@ -83,8 +86,12 @@ end
 -- following functions must be present for a working together with dnsmasq
 function init() 
 	print("clustduct: end init")
-  local ethers = read_csv("/etc/ethers"," ")
-  print(ethers)
+  local ethers = read_csv("/etc/hosts","%s+",'#')
+  tprint(ethers)
+  print("Table size: "..#ethers)
+  for i=1,#ethers do 
+    print(#ethers[i].." "..ethers[i][2])
+  end
 end
 
 function shutdown()
@@ -100,4 +107,6 @@ function tftp(action,args)
 	print("clustduct: tftp was called with:")
 end
 
+
+require("bfcommons")
 init()
