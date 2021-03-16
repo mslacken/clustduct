@@ -1,5 +1,8 @@
 #!/usr/bin/lua
 need_signal = false
+ethers = {}
+unknown_macs = {}
+unknown_macs_filename = "/srv/pillar/clustuct/unknown_macs"
 
 function send_signal()
 	if need_signal then
@@ -46,14 +49,17 @@ function read_csv(path,sep,comment,tonum, null)
     null = null or ''
     comment = comment or '#'
     local csvFile = {}
-    local file = assert(io.open(path, "r"))
+    local file = io.open(path, "r")
+    if file == nil then
+      return {}
+    end
     for line in file:lines() do
         local pos_com = line:find(comment)
         if pos_com ~= nil then
           line = line:sub(1,pos_com)
         end
         if line:len() > 1 then
-          fields = line:split(sep,40,true)
+          fields = line:split(sep,2,true)
           if tonum then -- convert numeric fields to numbers
               for i=1,#fields do
                   local field = fields[i]
@@ -63,7 +69,13 @@ function read_csv(path,sep,comment,tonum, null)
                   fields[i] = tonumber(field) or field
               end
             end
-          table.insert(csvFile, fields)
+          if fields ~= nil and fields[1] ~= nil then
+            if fields[2] ~= nil then
+              fields[1] = fields[2]
+            else
+              fields[1] = 1
+            end
+          end
         end
     end
     file:close()
@@ -85,13 +97,9 @@ end
 
 -- following functions must be present for a working together with dnsmasq
 function init() 
-	print("clustduct: end init")
-  local ethers = read_csv("/etc/hosts","%s+",'#')
-  tprint(ethers)
-  print("Table size: "..#ethers)
-  for i=1,#ethers do 
-    print(#ethers[i].." "..ethers[i][2])
-  end
+	print("clustduct: end init "..os.date("%H:%M:%S_%d.%m.%y"))
+  ethers = read_csv("/etc/hosts","%s+",'#')
+  unknown_macs = read_csv(unknown_macs_filename,"%s+",'#')
 end
 
 function shutdown()
@@ -100,7 +108,18 @@ end
 
 function lease(action,args)
 	print("clustduct: lease was called with action "..action)
-
+	if action == "old" then
+		print("clustduct: in old tree")
+    -- Find mac address either in ethers or in unknown_macs, if
+    -- not add it to unknown_macs, other actions have to be triggered
+    -- by admin
+    if ethers[args["mac_address"]] == nil or unknown_macs[args["mac_address"]] == nil then
+      ethers[args["mac_address"]] = os.date("%H:%M:%S_%d.%m.%y")
+      local file = assert(io.open(path, "a"))
+      file:write(ethers[args["mac_address"]]..' '..os.date("%H:%M:%S_%d.%m.%y"))
+      file:close()
+    end
+  end
 end
 
 function tftp(action,args)
